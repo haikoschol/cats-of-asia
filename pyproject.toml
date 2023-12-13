@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "cats-of-asia"
+version = "0.1.0"
+description = "Web app and Mastodon bot with cat photos from Asia"
+license = "GPL-3.0-only"
+authors = ["Haiko Schol <hs@haikoschol.com>"]
+readme = "README.md"
+homepage = "https://catsof.asia"
+repository = "https://github.com/haikoschol/cats-of-asia"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+django = "^5.0"
+psycopg = "^3.1.14"
+django-environ = "^0.11.2"
+
+
+[tool.poetry.group.dev.dependencies]
+ipython = "^8.18.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
