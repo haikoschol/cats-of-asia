@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "cats-of-asia"
+name = "catsofasia"
 version = "0.1.0"
 description = "Web app and Mastodon bot with cat photos from Asia"
 license = "GPL-3.0-only"
