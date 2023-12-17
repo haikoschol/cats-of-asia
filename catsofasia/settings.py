@@ -95,11 +95,21 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = "static/"
+STATIC_URL = env('STATIC_URL')
 STATIC_ROOT = BASE_DIR / "static"
 
 STATICFILES_DIRS = [
     BASE_DIR / "catsofasia/static",
 ]
+
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            'bucket_name': env('AWS_STORAGE_BUCKET_NAME'),
+            'endpoint_url': env('AWS_S3_ENDPOINT_URL'),
+        },
+    },
+}
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
