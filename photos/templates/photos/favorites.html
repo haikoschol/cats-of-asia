@@ -1,95 +1,32 @@
+{% extends "base.html" %}
 {% load static %}
-<!doctype html>
-<html lang="en">
-<head>
-    <title>Cats Of Asia</title>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+{% block javascript %}
+    <script defer src="{% static 'photos/common.js' %}"></script>
+    <script defer src="{% static 'photos/favorites.js' %}"></script>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
-    <link rel="stylesheet" href="{% static 'photos/style.css' %}">
+    <script>
+        let images = {{ photos|safe }}
 
-    <script src="{% static 'photos/common.js' %}"></script>
-</head>
-<body>
-<main class="container-fluid">
-    <nav>
-        <ul>
-            <li><strong>Cats Of Asia</strong></li>
-            <li>
-                <a href="{% url 'index' %}">Map</a>
-            </li>
-        </ul>
-    </nav>
+        document.addEventListener('DOMContentLoaded', () => {
+            const favorites = new FavoriteStore()
+            const byId = {}
+            images.forEach(img => byId[img.id] = img)
+            renderFavorites(byId, favorites)
+            updateVisibility(favorites)
+        })
+    </script>
+{% endblock %}
+
+{% block navitems %}
+    <li>
+        <a href="{% url 'index' %}">Map</a>
+    </li>
+{% endblock %}
+
+{% block content %}
     <div id="noFavs" hidden="" style="display: flex; justify-content: center;">
         <div>You don't have any favorites yet. Find some on the <a href="{% url 'index' %}">map</a>!</div>
     </div>
     <div id="favsContainer"></div>
-    <script>
-        const favorites = new FavoriteStore();
-
-        function makeRemoveButton(imageId, container) {
-            const button = document.createElement('button');
-            button.innerText = `Remove photo #${imageId} from favorites`;
-
-            button.onclick = () => {
-                favorites.remove(imageId);
-                favorites.write();
-                container.remove();
-                updateVisibility();
-            }
-            return button;
-        }
-
-        function renderFavorites(images) {
-            const favs = document.getElementById('favsContainer');
-
-            favorites.toArray().forEach(id => {
-                const img = document.createElement('img');
-                img.src = images[id].urlMedium;
-                img.alt = `cat photo #${id}`;
-                img.className = 'fav-img';
-
-                const a = document.createElement('a');
-                a.href = images[id].urlLarge;
-                a.appendChild(img);
-
-                const card = document.createElement('article');
-                card.className = 'fav-card';
-                const footer = document.createElement('footer');
-                // TODO add "show on map" link
-                footer.appendChild(makeRemoveButton(id, card));
-
-                card.appendChild(a);
-                card.appendChild(footer);
-                favs.appendChild(card);
-            });
-        }
-
-        function updateVisibility() {
-            const noFavs = document.getElementById('noFavs');
-            const favs = document.getElementById('favsContainer');
-
-            if (favorites.size === 0) {
-                favs.hidden = true;
-                noFavs.hidden = false;
-            } else {
-                favs.hidden = false;
-                noFavs.hidden = true;
-            }
-        }
-
-        updateVisibility();
-
-        let images = {{ photos|safe }};
-
-        const byId = {};
-        images.forEach(img => byId[img.id] = img);
-        renderFavorites(byId);
-    </script>
-</main>
-</body>
-</html>
+{% endblock %}
