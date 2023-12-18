@@ -8,6 +8,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 import os
+import sys
 from pathlib import Path
 
 import environ
@@ -16,6 +17,8 @@ from django.core.exceptions import ImproperlyConfigured
 env = environ.Env(
     DEBUG=(bool, False)
 )
+
+IS_DEVSERVER = len(sys.argv) >= 2 and sys.argv[1] == 'runserver'
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -54,7 +57,7 @@ ROOT_URLCONF = "catsofasia.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "catsofasia/templates"],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -95,21 +98,23 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = env('STATIC_URL')
-STATIC_ROOT = BASE_DIR / "static"
-
 STATICFILES_DIRS = [
-    BASE_DIR / "catsofasia/static",
+    BASE_DIR / "static",
 ]
 
-STORAGES = {
-    "staticfiles": {
-        "BACKEND": "storages.backends.s3.S3Storage",
-        "OPTIONS": {
-            'bucket_name': env('AWS_STORAGE_BUCKET_NAME'),
-            'endpoint_url': env('AWS_S3_ENDPOINT_URL'),
+if IS_DEVSERVER:
+    STATIC_URL = '/static/'
+else:
+    STATIC_URL = env('STATIC_URL')
+
+    STORAGES = {
+        "staticfiles": {
+            "BACKEND": "storages.backends.s3.S3Storage",
+            "OPTIONS": {
+                'bucket_name': env('AWS_STORAGE_BUCKET_NAME'),
+                'endpoint_url': env('AWS_S3_ENDPOINT_URL'),
+            },
         },
-    },
-}
+    }
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
