@@ -1,3 +1,6 @@
+{#Copyright (C) 2023 Haiko Schol#}
+{#SPDX-License-Identifier: GPL-3.0-or-later#}
+
 {%  load static  %}
 <!doctype html>
 <html lang="en">
@@ -32,8 +35,15 @@
                     </ul>
                 </details>
             </li>
-            {% block navitems %}
-            {% endblock %}
+            <li>
+                <a href="{% url 'index' %}">Map</a>
+            </li>
+            <li>
+                <a href="{% url 'favorites' %}">Favorites</a>
+            </li>
+            <li>
+                <a href="{% url 'upload' %}">Upload</a>
+            </li>
         </ul>
     </nav>
     {% block content %}

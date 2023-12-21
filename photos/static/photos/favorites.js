@@ -1,6 +1,7 @@
-function renderFavorites(images, favorites) {
-    const favs = document.getElementById('favsContainer');
+// Copyright (C) 2023 Haiko Schol
+// SPDX-License-Identifier: GPL-3.0-or-later
 
+function renderFavorites(favorites, images, container) {
     favorites.toArray().forEach(id => {
         const img = document.createElement('img');
         img.src = images[id].urlMedium;
@@ -19,7 +20,7 @@ function renderFavorites(images, favorites) {
 
         card.appendChild(a);
         card.appendChild(footer);
-        favs.appendChild(card);
+        container.appendChild(card);
     });
 }
 

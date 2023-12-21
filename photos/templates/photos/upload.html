@@ -1,0 +1,23 @@
+{#Copyright (C) 2023 Haiko Schol#}
+{#SPDX-License-Identifier: GPL-3.0-or-later#}
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block javascript %}
+    <script defer src="https://cdn.jsdelivr.net/npm/exifr/dist/lite.umd.js"></script>
+    <script defer src="{% static 'photos/upload.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+    <form method="post" enctype="multipart/form-data">
+        <label for="photo">Choose a photo</label><input type="file" id="photo" name="photo" accept="image/jpeg" />
+        <label for="filename">Filename</label><input type="text" id="filename" name="filename" readonly />
+        <label for="city">City</label><input type="text" id="city" name="city" />
+        <label for="country">Country</label><input type="text" id="country" name="country" />
+        <label for="timestamp">Timestamp</label><input type="text" id="timestamp" name="timestamp" />
+        <label for="tzoffset">Timezone Offset (minutes)</label><input type="text" id="tzoffset" name="tzoffset" />
+        <input type="submit" id="submit" name="submit" value="Upload" disabled />
+    </form>
+    <img id="preview" src="" alt="Preview of the photo you selected" hidden="" />
+{% endblock %}

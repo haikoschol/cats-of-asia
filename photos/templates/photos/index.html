@@ -1,3 +1,6 @@
+{#Copyright (C) 2023 Haiko Schol#}
+{#SPDX-License-Identifier: GPL-3.0-or-later#}
+
 {% extends "base.html" %}
 {% load static %}
 
@@ -28,12 +31,6 @@
 
         document.addEventListener('DOMContentLoaded', () => init('cattos', accessToken).catch(console.error))
     </script>
-{% endblock %}
-
-{% block navitems %}
-    <li id="favoritesNavItem" hidden="">
-        <a href="{% url 'favorites' %}">Favorites</a>
-    </li>
 {% endblock %}
 
 {% block content %}

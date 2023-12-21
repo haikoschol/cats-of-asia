@@ -1,3 +1,6 @@
+{#Copyright (C) 2023 Haiko Schol#}
+{#SPDX-License-Identifier: GPL-3.0-or-later#}
+
 {% extends "base.html" %}
 {% load static %}
 
@@ -12,16 +15,10 @@
             const favorites = new FavoriteStore()
             const byId = {}
             images.forEach(img => byId[img.id] = img)
-            renderFavorites(byId, favorites)
+            renderFavorites(favorites, byId, document.getElementById('favsContainer'))
             updateVisibility(favorites)
         })
     </script>
-{% endblock %}
-
-{% block navitems %}
-    <li>
-        <a href="{% url 'index' %}">Map</a>
-    </li>
 {% endblock %}
 
 {% block content %}

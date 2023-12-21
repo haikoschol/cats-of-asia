@@ -1,9 +1,10 @@
 import json
 
 from django.conf import settings
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 
-from photos.models import Photo
+from photos.models import Photo, Coordinates, Location
 
 DEFAULT_ZOOM = 15
 MAX_ZOOM = 22
@@ -41,3 +42,23 @@ def index(request):
 
 def favorites(request):
     return render(request, 'photos/favorites.html', {'photos': json.dumps(get_photos())})
+
+
+# TODO require auth
+def upload(request):
+    return render(request, 'photos/upload.html')
+
+
+# TODO require auth
+def location(request, latitude, longitude):
+    coords = Coordinates.objects.filter(latitude=latitude, longitude=longitude).first()
+    if not coords:
+        return HttpResponse(status=404)
+
+    return JsonResponse({'city': coords.location.city, 'country': coords.location.country})
+
+
+# TODO require auth
+# TODO require POST
+def reverse_geocode(request, latitude, longitude, tzoffset):
+    return HttpResponse(status=500)

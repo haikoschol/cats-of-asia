@@ -1,7 +1,12 @@
-let favorites = null;
+// Copyright (C) 2023 Haiko Schol
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 let map = null;
 
-function makePopupContent(image, map) {
+// TODO use srcset for images everywhere
+// https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/srcset
+// https://developers.cloudflare.com/images/image-resizing/responsive-images/
+function makePopupContent(image, map, favorites) {
     const {id, urlSmall, urlLarge} = image;
     const date = new Date(image.date).toDateString();
     const location = formatLocation(image);
@@ -16,7 +21,7 @@ function makePopupContent(image, map) {
     description.innerText = `Photo #${id}. Taken on ${date} in ${location}`;
     footer.appendChild(description);
 
-    const favButton = makeFavoriteButton(id);
+    const favButton = makeFavoriteButton(id, favorites);
     favButton.mount(footer);
 
     if (navigator.share) {
@@ -44,14 +49,13 @@ function makeImageLink(href, src, alt) {
     return a;
 }
 
-function makeFavoriteButton(imageId) {
+function makeFavoriteButton(imageId, favorites) {
     const icon = favorites.iconForStatus(imageId);
     const favButton = new IconButton(icon, 'add/remove this cat to/from your favorites');
 
     favButton.onclick = () => {
         favorites.toggle(imageId);
         favButton.src = favorites.iconForStatus(imageId);
-        setFavoritesNavVisibility();
         favorites.write();
     }
     return favButton;
@@ -89,11 +93,6 @@ class IconButton {
     }
 }
 
-function setFavoritesNavVisibility() {
-    const navItem = document.getElementById('favoritesNavItem');
-    navItem.hidden = favorites.size === 0;
-}
-
 function shareCatto(imageId, zoomLevel) {
     const protocol = window.location.hostname === 'localhost' ? 'http' : 'https';
     const url = `${protocol}://${window.location.hostname}${window.location.pathname}?imageId=${imageId}&zoomLevel=${zoomLevel}`;
@@ -112,12 +111,12 @@ function formatLocation(image) {
     return city ? `${city}, ${country}` : country
 }
 
-function addCircle(image, map, radius) {
+function addCircle(image, map, radius, favorites) {
     const color = image.randomized ? 'blue' : 'red';
     const circle = L.circle([image.latitude, image.longitude], {color: color, radius: radius});
 
     // Passing a function that returns dom elements in order to lazy load the popup images.
-    const popup = circle.bindPopup(() => makePopupContent(image, map));
+    const popup = circle.bindPopup(() => makePopupContent(image, map, favorites));
 
     circle.addTo(map);
     return circle;
@@ -169,7 +168,7 @@ function randomizeCoordinate(coord) {
 }
 
 async function init(divId, accessToken) {
-    favorites = new FavoriteStore();
+    const favorites = new FavoriteStore();
 
     map = L.map(divId);
     L.tileLayer(`https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=${accessToken}`, {
@@ -182,7 +181,7 @@ async function init(divId, accessToken) {
     adjustCoordinates(images);
 
     const radius = calculateRadius(map.getZoom());
-    images.forEach(img => img['circle'] = addCircle(img, map, radius));
+    images.forEach(img => img['circle'] = addCircle(img, map, radius, favorites));
     setMapView(map, images);
 
     map.on('zoomend', () => {
@@ -192,7 +191,6 @@ async function init(divId, accessToken) {
 
     map.on('moveend', () => updateCurrentPosition(map));
     initPlaces(images, map);
-    setFavoritesNavVisibility();
 }
 
 // If url params with image id and optional zoom level are present, center map on that, otherwise try last location
