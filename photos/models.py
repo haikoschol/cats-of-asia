@@ -4,6 +4,7 @@ from django.db import models
 class Location(models.Model):
     city = models.TextField()
     country = models.TextField()
+    tzoffset = models.IntegerField()
 
     class Meta:
         constraints = [
@@ -14,21 +15,29 @@ class Location(models.Model):
 class Coordinates(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
+    altitude = models.FloatField()
     location = models.ForeignKey(Location, on_delete=models.CASCADE)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['latitude', 'longitude'], name='unique_latitude_longitude'),
+            models.UniqueConstraint(
+                fields=['latitude', 'longitude', 'altitude'],
+                name='unique_latitude_longitude_altitude',
+            ),
         ]
 
 
 class Photo(models.Model):
-    url_small = models.URLField()
-    url_medium = models.URLField()
-    url_large = models.URLField()
+    id = models.UUIDField(primary_key=True, editable=False)  # UUID created by Cloudflare Images
+    filename = models.CharField(max_length=255)
     sha256 = models.CharField(max_length=64, unique=True)
-    date = models.DateField()
-    coordinates = models.ForeignKey(Coordinates, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField()
+    coordinates = models.ForeignKey(Coordinates, null=True, on_delete=models.SET_NULL)
+
+
+class RawMetadata(models.Model):
+    metadata = models.JSONField()
+    photo = models.ForeignKey(Photo, to_field='sha256', on_delete=models.CASCADE)
 
 
 class Platform(models.Model):
@@ -37,7 +46,7 @@ class Platform(models.Model):
 
 
 class Post(models.Model):
-    photo = models.ForeignKey(Photo, on_delete=models.CASCADE)
+    photo = models.ForeignKey(Photo, to_field='sha256', on_delete=models.CASCADE)
     platform = models.ForeignKey(Platform, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
