@@ -196,7 +196,7 @@ async function init(divId, accessToken) {
 // If url params with image id and optional zoom level are present, center map on that, otherwise try last location
 // from local storage and fall back to default values (coords of first image).
 function setMapView(map, images) {
-    let {latitude, longitude, zoomLevel} = getCurrentPosition(images[0].latitude, images[0].longitude)
+    let {latitude, longitude, zoomLevel} = getCurrentPosition(images)
 
     const urlParams = new URLSearchParams(window.location.search);
     const imageId = Number(urlParams.get('imageId'));
@@ -246,14 +246,17 @@ function initPlaces(images, map) {
     }
 }
 
-function getCurrentPosition(startLatitude, startLongitude) {
-    const lsLat = localStorage.getItem('latitude')
-    const lsLng = localStorage.getItem('longitude')
+function getCurrentPosition(images) {
+    const [startLatitude, startLongitude] = images.length ? [images[0].latitude, images[0].longitude] : [18.7933987, 98.9841731];
+    const lsLat = Number(localStorage.getItem('latitude'));
+    const lsLng = Number(localStorage.getItem('longitude'));
     const lsZoom = localStorage.getItem('zoomLevel');
 
+    console.log('lsLat', lsLat, 'lsLng', lsLng, 'lsZoom', lsZoom);
+
     return {
-        latitude: lsLat ? Number(lsLat) : startLatitude,
-        longitude: lsLng ? Number(lsLng) : startLongitude,
+        latitude: isNaN(lsLat) || lsLat === 0 ? startLatitude : lsLat,
+        longitude: isNaN(lsLng) || lsLng === 0 ? startLongitude : lsLng,
         zoomLevel: lsZoom ? Number(lsZoom) : defaultZoomLevel,
     };
 }
