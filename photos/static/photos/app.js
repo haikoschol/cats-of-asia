@@ -7,21 +7,21 @@ let map = null;
 // https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/srcset
 // https://developers.cloudflare.com/images/image-resizing/responsive-images/
 function makePopupContent(image, map, favorites) {
-    const {id, urlSmall, urlLarge} = image;
-    const date = new Date(image.date).toDateString();
+    const {sha256, timestamp, urls} = image;
+    const date = new Date(timestamp).toDateString();
     const location = formatLocation(image);
     const outer = document.createElement('div');
-    const catImage = makeImageLink(urlLarge, urlSmall, `photo #${id}, showing one or more cats`);
+    const catImage = makeImageLink(urls.desktop, urls.popup, `a photo of one or more cats`);
     outer.appendChild(catImage);
 
     const footer = document.createElement('div');
     footer.className = 'popup-footer';
 
     const description = document.createElement('div');
-    description.innerText = `Photo #${id}. Taken on ${date} in ${location}`;
+    description.innerText = `Taken on ${date} in ${location}`;
     footer.appendChild(description);
 
-    const favButton = makeFavoriteButton(id, favorites);
+    const favButton = makeFavoriteButton(sha256, favorites);
     favButton.mount(footer);
 
     if (navigator.share) {
@@ -49,13 +49,13 @@ function makeImageLink(href, src, alt) {
     return a;
 }
 
-function makeFavoriteButton(imageId, favorites) {
-    const icon = favorites.iconForStatus(imageId);
+function makeFavoriteButton(imageHash, favorites) {
+    const icon = favorites.iconForStatus(imageHash);
     const favButton = new IconButton(icon, 'add/remove this cat to/from your favorites');
 
     favButton.onclick = () => {
-        favorites.toggle(imageId);
-        favButton.src = favorites.iconForStatus(imageId);
+        favorites.toggle(imageHash);
+        favButton.src = favorites.iconForStatus(imageHash);
         favorites.write();
     }
     return favButton;
@@ -251,8 +251,6 @@ function getCurrentPosition(images) {
     const lsLat = Number(localStorage.getItem('latitude'));
     const lsLng = Number(localStorage.getItem('longitude'));
     const lsZoom = localStorage.getItem('zoomLevel');
-
-    console.log('lsLat', lsLat, 'lsLng', lsLng, 'lsZoom', lsZoom);
 
     return {
         latitude: isNaN(lsLat) || lsLat === 0 ? startLatitude : lsLat,

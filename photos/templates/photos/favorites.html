@@ -13,9 +13,9 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             const favorites = new FavoriteStore()
-            const byId = {}
-            images.forEach(img => byId[img.id] = img)
-            renderFavorites(favorites, byId, document.getElementById('favsContainer'))
+            const byHash = {}
+            images.forEach(img => byHash[img.sha256] = img)
+            renderFavorites(favorites, byHash, document.getElementById('favsContainer'))
             updateVisibility(favorites)
         })
     </script>

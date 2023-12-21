@@ -2,11 +2,11 @@ import json
 import urllib
 
 from django.conf import settings
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 
-from photos.models import Photo, Coordinates
+from photos.models import Photo, Coordinates, Location, RawMetadata
 
 DEFAULT_ZOOM = 15
 MAX_ZOOM = 22
@@ -16,7 +16,7 @@ DEFAULT_RADIUS = 12
 def mkurls(photo):
     base = 'https://{}/cdn-cgi/imagedelivery/{}/{}'.format(
         settings.CLOUDFLARE_IMAGES_DOMAIN,
-        settings.CLOUDFLARE_IMAGES_ACCOUNT_ID,
+        settings.CLOUDFLARE_IMAGES_ACCOUNT_HASH,
         photo.id,
     )
 
@@ -62,9 +62,63 @@ def favorites(request):
 
 
 # TODO require auth
-@require_http_methods(['POST'])
+@require_http_methods(['GET'])
 def upload(request):
     return render(request, 'photos/upload.html')
+
+
+# TODO require auth
+@require_http_methods(['POST'])
+def create_upload_url(request):
+    url = 'https://api.cloudflare.com/client/v4/accounts/{}/images/v2/direct_upload'.format(
+        settings.CLOUDFLARE_IMAGES_ACCOUNT_HASH)
+
+    # TODO set expiry to now + 2min
+    # https://developers.cloudflare.com/api/operations/cloudflare-images-create-authenticated-direct-upload-url-v-2
+    request = urllib.request.Request(url=url, method='POST', data=None)
+    request.add_header('Authorization', f'Bearer {settings.CLOUDFLARE_IMAGES_API_KEY}')
+
+    try:
+        with urllib.request.urlopen(request) as response:
+            status = response.status
+            payload = json.load(response)
+    except urllib.error.HTTPError as err:
+        status = err.code
+        payload = json.load(err.fp)
+
+    return JsonResponse(status=status, data=payload)
+
+
+# TODO require auth
+@require_http_methods(['POST'])
+def add_photo(request):
+    payload = json.load(request)
+    coords = Coordinates.objects.filter(latitude=payload['latitude'], longitude=payload['longitude']).first()
+
+    if not coords:
+        loc = Location.objects.create(
+            city=payload['city'],
+            country=payload['country'],
+            tzoffset=payload['tzoffset'],
+        )
+
+        coords = Coordinates.objects.create(
+            latitude=payload['latitude'],
+            longitude=payload['longitude'],
+            altitude=payload['altitude'],
+            location=loc,
+        )
+
+    photo = Photo.objects.create(
+        id=payload['id'],
+        filename=payload['filename'],
+        sha256=payload['sha256'],
+        timestamp=payload['timestamp'],
+        coordinates=coords,
+    )
+
+    RawMetadata.objects.create(metadata=payload['raw'], photo=photo)
+    return HttpResponse(status=201)
 
 
 CITY_CANDIDATES = {'locality', 'colloquial_area', 'administrative_area_level_1', 'administrative_area_level_2',

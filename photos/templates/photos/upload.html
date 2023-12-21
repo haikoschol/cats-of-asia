@@ -10,10 +10,14 @@
 {% endblock %}
 
 {% block content %}
-    <form method="post" enctype="multipart/form-data">
+    <form id="form" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
         <label for="photo">Choose a photo</label><input type="file" id="photo" name="photo" accept="image/jpeg" />
         <label for="filename">Filename</label><input type="text" id="filename" name="filename" readonly />
         <label for="city">City</label><input type="text" id="city" name="city" />
+        <div id="candidates" hidden="hidden">
+            <label for="cityCandidates">City Candidates</label><select id="cityCandidates" onchange="selectCity(this)"></select>
+        </div>
         <label for="country">Country</label><input type="text" id="country" name="country" />
         <label for="timestamp">Timestamp</label><input type="text" id="timestamp" name="timestamp" />
         <label for="tzoffset">Timezone Offset (minutes)</label><input type="text" id="tzoffset" name="tzoffset" />

@@ -16,24 +16,24 @@ class FavoriteStore {
         return this.favSet.size;
     }
 
-    has(imageId) {
-        return this.favSet.has(imageId);
+    has(imageHash) {
+        return this.favSet.has(imageHash);
     }
 
-    remove(imageId) {
-        this.favSet.delete(imageId);
+    remove(imageHash) {
+        this.favSet.delete(imageHash);
     }
 
-    toggle(imageId) {
-        if (this.favSet.has(imageId)) {
-            this.favSet.delete(imageId);
+    toggle(imageHash) {
+        if (this.favSet.has(imageHash)) {
+            this.favSet.delete(imageHash);
         } else {
-            this.favSet.add(imageId);
+            this.favSet.add(imageHash);
         }
     }
 
-    iconForStatus(imageId) {
-        return this.favSet.has(imageId) ? iconFavorite : iconNonFavorite;
+    iconForStatus(imageHash) {
+        return this.favSet.has(imageHash) ? iconFavorite : iconNonFavorite;
     }
 
     toArray() {

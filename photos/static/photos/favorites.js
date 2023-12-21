@@ -2,21 +2,21 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 function renderFavorites(favorites, images, container) {
-    favorites.toArray().forEach(id => {
+    favorites.toArray().forEach(hash => {
         const img = document.createElement('img');
-        img.src = images[id].urlMedium;
-        img.alt = `cat photo #${id}`;
+        img.src = images[hash].urls.favorite;
+        img.alt = `cat photo #${hash}`;
         img.className = 'fav-img';
 
         const a = document.createElement('a');
-        a.href = images[id].urlLarge;
+        a.href = images[hash].urls.desktop;
         a.appendChild(img);
 
         const card = document.createElement('article');
         card.className = 'fav-card';
         const footer = document.createElement('footer');
         // TODO add "show on map" link
-        footer.appendChild(makeRemoveButton(id, card, favorites));
+        footer.appendChild(makeRemoveButton(hash, card, favorites));
 
         card.appendChild(a);
         card.appendChild(footer);
@@ -24,12 +24,12 @@ function renderFavorites(favorites, images, container) {
     });
 }
 
-function makeRemoveButton(imageId, container, favorites) {
+function makeRemoveButton(imageHash, container, favorites) {
     const button = document.createElement('button');
-    button.innerText = `Remove photo #${imageId} from favorites`;
+    button.innerText = `Remove from favorites`;
 
     button.onclick = () => {
-        favorites.remove(imageId);
+        favorites.remove(imageHash);
         favorites.write();
         container.remove();
         updateVisibility(favorites);
