@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023 Haiko Schol
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 from django.urls import path
 
 from . import views

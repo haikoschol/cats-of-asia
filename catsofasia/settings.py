@@ -1,4 +1,7 @@
 """
+SPDX-FileCopyrightText: 2023 Haiko Schol
+SPDX-License-Identifier: GPL-3.0-or-later
+
 Django settings for catsofasia project.
 
 For more information on this file, see
@@ -43,6 +46,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_unicorn",
     "photos.apps.PhotosConfig"
 ]
 
