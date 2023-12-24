@@ -4,6 +4,12 @@ import django.db.models.deletion
 from django.db import migrations, models
 
 
+def seed_platforms(_apps, _schema_editor):
+    from ..models import Platform
+    Platform.objects.create(name='Mastodon', profile_url='https://botsin.space/@CatsOfAsia')
+    Platform.objects.create(name='X', profile_url='https://x.com/CatsOfAsia')
+
+
 class Migration(migrations.Migration):
 
     initial = True
@@ -98,4 +104,5 @@ class Migration(migrations.Migration):
             model_name='post',
             constraint=models.UniqueConstraint(fields=('photo', 'platform'), name='unique_photo_platform'),
         ),
+        migrations.RunPython(seed_platforms),
     ]
