@@ -232,6 +232,17 @@ files = [
 ]
 
 [[package]]
+name = "json-rpc"
+version = "1.15.0"
+description = "JSON-RPC transport implementation"
+optional = false
+python-versions = "*"
+files = [
+    {file = "json-rpc-1.15.0.tar.gz", hash = "sha256:e6441d56c1dcd54241c937d0a2dcd193bdf0bdc539b5316524713f554b7f85b9"},
+    {file = "json_rpc-1.15.0-py2.py3-none-any.whl", hash = "sha256:4a4668bbbe7116feb4abbd0f54e64a4adcf4b8f648f19ffa0848ad0f6606a9bf"},
+]
+
+[[package]]
 name = "matplotlib-inline"
 version = "0.1.6"
 description = "Inline Matplotlib backend for Jupyter"
@@ -571,4 +582,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "b851dc996995283b67bdaad675d4edb83d6012e8e1a4eaee2d84de102270a10b"
+content-hash = "68e5fac43de8211220d05993899f229d497758b49674eb78aa51788332d2697b"

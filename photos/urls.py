@@ -14,5 +14,5 @@ urlpatterns = [
 
     # TODO add converter to float
     # https://docs.djangoproject.com/en/5.0/topics/http/urls/#registering-custom-path-converters
-    path('location/<latitude>/<longitude>', views.location, name='location'),
+    # path('location/<latitude>/<longitude>', views.location, name='location'),
 ]

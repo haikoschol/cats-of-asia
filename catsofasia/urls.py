@@ -20,7 +20,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from jsonrpc.backend.django import api
+
 urlpatterns = [
     path("", include("photos.urls")),
+    path(r'api/jsonrpc/', include(api.urls)),
     path("admin/", admin.site.urls),
 ]

@@ -5,9 +5,10 @@ import json
 import urllib
 
 from django.conf import settings
-from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
+
+from jsonrpc.backend.django import api
 
 from photos.models import Photo, Coordinates, Location, RawMetadata
 
@@ -16,7 +17,7 @@ MAX_ZOOM = 22
 DEFAULT_RADIUS = 12
 
 
-def mkurls(photo):
+def mkurls(photo: Photo) -> dict[str, str]:
     base = 'https://{}/cdn-cgi/imagedelivery/{}/{}'.format(
         settings.CLOUDFLARE_IMAGES_DOMAIN,
         settings.CLOUDFLARE_IMAGES_ACCOUNT_HASH,
@@ -70,69 +71,20 @@ def upload(request):
     return render(request, 'photos/upload.html')
 
 
-# TODO require auth
-@require_http_methods(['POST'])
-def create_upload_url(request):
-    url = 'https://api.cloudflare.com/client/v4/accounts/{}/images/v2/direct_upload'.format(
-        settings.CLOUDFLARE_IMAGES_ACCOUNT_HASH)
-
-    # TODO set expiry to now + 2min
-    # https://developers.cloudflare.com/api/operations/cloudflare-images-create-authenticated-direct-upload-url-v-2
-    request = urllib.request.Request(url=url, method='POST', data=None)
-    request.add_header('Authorization', f'Bearer {settings.CLOUDFLARE_IMAGES_API_KEY}')
-
-    try:
-        with urllib.request.urlopen(request) as response:
-            status = response.status
-            payload = json.load(response)
-    except urllib.error.HTTPError as err:
-        status = err.code
-        payload = json.load(err.fp)
-
-    return JsonResponse(status=status, data=payload)
-
-
-# TODO require auth
-@require_http_methods(['POST'])
-def add_photo(request):
-    payload = json.load(request)
-    coords = Coordinates.objects.filter(latitude=payload['latitude'], longitude=payload['longitude']).first()
-
-    if not coords:
-        loc = Location.objects.create(
-            city=payload['city'],
-            country=payload['country'],
-            tzoffset=payload['tzoffset'],
-        )
-
-        coords = Coordinates.objects.create(
-            latitude=payload['latitude'],
-            longitude=payload['longitude'],
-            altitude=payload['altitude'],
-            location=loc,
-        )
-
-    photo = Photo.objects.create(
-        id=payload['id'],
-        filename=payload['filename'],
-        sha256=payload['sha256'],
-        timestamp=payload['timestamp'],
-        coordinates=coords,
-    )
-
-    RawMetadata.objects.create(metadata=payload['raw'], photo=photo)
-    return HttpResponse(status=201)
+@api.dispatcher.add_method # create wrapper that requires auth and csrf token
+def photo_exists(request, sha256: str) -> bool:
+    return Photo.objects.filter(sha256=sha256).first() is not None
 
 
 CITY_CANDIDATES = {'locality', 'colloquial_area', 'administrative_area_level_1', 'administrative_area_level_2',
                    'administrative_area_level_3', 'administrative_area_level_4', 'administrative_area_level_5'}
 
-URL_TMPL = 'https://maps.googleapis.com/maps/api/geocode/json?language=en&latlng={latitude},{longitude}&key={api_key}&result_type=country|%s' % '|'.join(CITY_CANDIDATES)
+URL_TMPL = 'https://maps.googleapis.com/maps/api/geocode/json?language=en&latlng={latitude},{longitude}\
+&key={api_key}&result_type=country|%s' % '|'.join(CITY_CANDIDATES)
 
 
-# TODO require auth
-@require_http_methods(['GET'])
-def location(request, latitude, longitude):
+@api.dispatcher.add_method
+def get_location(request, latitude: float, longitude: float) -> dict[str, object]:
     coords = Coordinates.objects.filter(latitude=latitude, longitude=longitude).first()
 
     if coords:
@@ -152,5 +104,50 @@ def location(request, latitude, longitude):
                     country = ac['long_name']
 
         payload = {'cityCandidates': sorted(list(city_candidates)), 'country': country}
+        if len(payload['cityCandidates']) == 1:
+            payload['city'] = payload['cityCandidates'][0]
 
-    return JsonResponse(payload)
+    return payload
+
+
+@api.dispatcher.add_method
+def create_upload_url(request):
+    url = 'https://api.cloudflare.com/client/v4/accounts/{}/images/v2/direct_upload'.format(
+        settings.CLOUDFLARE_IMAGES_ACCOUNT_ID)
+
+    # TODO set expiry to now + 2min
+    # https://developers.cloudflare.com/api/operations/cloudflare-images-create-authenticated-direct-upload-url-v-2
+    request = urllib.request.Request(url=url, method='POST', data=None)
+    request.add_header('Authorization', f'Bearer {settings.CLOUDFLARE_IMAGES_API_KEY}')
+
+    with urllib.request.urlopen(request) as response:
+        return json.load(response)['result']
+
+
+@api.dispatcher.add_method
+def add_photo(request, metadata: dict[str, object]):
+    coords = Coordinates.objects.filter(latitude=metadata['latitude'], longitude=metadata['longitude']).first()
+
+    if not coords:
+        loc, _ = Location.objects.get_or_create(
+            city=metadata['city'],
+            country=metadata['country'],
+            tzoffset=metadata['tzoffset'],
+        )
+
+        coords = Coordinates.objects.create(
+            latitude=metadata['latitude'],
+            longitude=metadata['longitude'],
+            altitude=metadata['altitude'],
+            location=loc,
+        )
+
+    photo = Photo.objects.create(
+        id=metadata['id'],
+        filename=metadata['filename'],
+        sha256=metadata['sha256'],
+        timestamp=metadata['timestamp'],
+        coordinates=coords,
+    )
+
+    RawMetadata.objects.create(metadata=metadata['raw'], photo=photo)

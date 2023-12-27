@@ -3,33 +3,43 @@
 
 'use strict';
 
+// FIXME switch to prod url once this service is out of beta https://www.jsdelivr.com/esm
+import {HTTPTransport, RequestManager, Client} from 'https://esm.run/@open-rpc/client-js';
+
+const client = new Client(new RequestManager([new HTTPTransport(jsonRpcUrl)]));
+
+export default () => {};
+
 let metadata = {};
 
 async function processPhoto(evt) {
-    document.getElementById('photo').setAttribute('disabled', 'disabled');
-    document.getElementById('submit').setAttribute('disabled', 'disabled');
+    toggleLoadingState(true);
 
     const file = evt.target.files[0];
-    metadata = await parse(file);
-    const location = await reverseGeocode(metadata.latitude, metadata.longitude);
+    const img = loadImage(file, document.getElementById('preview'));
+    metadata.sha256 = await sha256(file);
+
+    if (await photoExists(metadata.sha256)) {
+        // TODO throw up toast message
+        resetForm();
+        return;
+    }
+
+    Object.assign(metadata, await parse(file));
+    const location = await getLocation(metadata.latitude, metadata.longitude);
     Object.assign(metadata, location);
     populateForm(metadata);
 
-    await loadImage(file, document.getElementById('preview'));
-    metadata.sha256 = await sha256(file);
+    await img;
+    toggleLoadingState(false);
     document.getElementById('submit').removeAttribute('disabled');
 }
 
 async function uploadPhoto(evt) {
     evt.preventDefault();
+    toggleLoadingState(true);
 
-    // TODO check if photo already exists
-    // TODO show spinner/progress bar
-
-    document.getElementById('photo').setAttribute('disabled', 'disabled');
-    evt.target.setAttribute('disabled', 'disabled');
-
-    const uploadInfo = await getUploadInfo();
+    const uploadInfo = await createUploadURL();
     if (uploadInfo === null) {
         resetForm();
         return;
@@ -41,80 +51,97 @@ async function uploadPhoto(evt) {
 
     let response = await fetch(uploadInfo.uploadURL, {method: 'POST', body: formData});
     if (response.status > 299) {
+        // TODO throw up toast error
         console.error(response);
         resetForm();
         return;
     }
 
     metadata.id = uploadInfo.id;
+    // updated editable fields
     metadata.city = document.getElementById('city').value;
     metadata.country = document.getElementById('country').value;
-    metadata.timestamp = document.getElementById('timestamp').value;
-    metadata.tzoffset = document.getElementById('tzoffset').value;
 
     await addPhoto(metadata);
     resetForm();
 }
 
+function toggleLoadingState(loading) {
+    const photo = document.getElementById('photo');
+    const submit = document.getElementById('submit');
+
+    if (loading) {
+        photo.setAttribute('disabled', 'disabled');
+        submit.setAttribute('aria-busy', 'true'); // FIXME has no effect
+    } else {
+        photo.removeAttribute('disabled');
+        submit.removeAttribute('aria-busy');
+    }
+}
+
 function resetForm() {
     metadata = {};
-
     const select = document.getElementById('cityCandidates');
     const len = select.options.length;
     for (let i = len; i >= 0; i--) {
         select.remove(i);
     }
 
+    const submit = document.getElementById('submit');
+    submit.setAttribute('disabled', 'disabled');
+    submit.removeAttribute('aria-busy');
+
     document.getElementById('form').reset();
     document.getElementById('photo').removeAttribute('disabled');
-    document.getElementById('submit').removeAttribute('disabled');
     document.getElementById('preview').setAttribute('hidden', 'hidden');
     document.getElementById('candidates').setAttribute('hidden', 'hidden');
 }
 
+async function photoExists(sha256) {
+    try {
+        return await client.request({method: "photo_exists", params: [sha256]});
+    } catch (e) {
+        // TODO throw up toast error
+        console.error(e);
+    }
+    return true;
+}
+
+async function getLocation(latitude, longitude) {
+    try {
+        return await client.request({method: "get_location", params: [latitude, longitude]});
+    } catch (e) {
+        // TODO throw up toast error
+        console.error(e);
+    }
+    return null;
+}
+
+async function createUploadURL() {
+    try {
+        return await client.request({method: "create_upload_url"});
+    } catch (e) {
+        // TODO throw up toast error
+        console.error(e);
+    }
+    return null;
+}
+
 async function addPhoto(metadata) {
-    // FIXME get URL from backend
-    const response = await fetch('/add_photo', {
-        'method': 'POST',
-        'headers': {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        },
-        'body': JSON.stringify(metadata)}
-    );
-    if (response.status > 299) {
-        console.error(response);
+    try {
+        return await client.request({method: "add_photo", params: [metadata]});
+    } catch (e) {
+        // TODO throw up toast error
+        console.error(e);
     }
-}
-
-async function getUploadInfo() {
-    // FIXME get URL from backend
-    const response = await fetch('/create_upload_url', {
-        'method': 'POST',
-        'headers': {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        }
-    });
-
-    if (response.status > 299) {
-        console.error(await response.json());
-        return null;
-    }
-
-    const payload = await response.json();
-    return payload.result;
-}
-
-async function reverseGeocode(latitude, longitude) {
-    // FIXME get URL from backend
-    const response = await fetch(`/location/${latitude}/${longitude}`);
-    return await response.json();
+    return null;
 }
 
 function populateForm(metadata) {
     document.getElementById('filename').value = metadata.filename;
     document.getElementById('country').value = metadata.country;
-    document.getElementById('timestamp').value = metadata.timestamp.toISOString();
-    document.getElementById('tzoffset').value = metadata.timestamp.getTimezoneOffset();
+    document.getElementById('timestamp').value = metadata.timestamp;
+    document.getElementById('tzoffset').value = metadata.tzoffset;
 
     if (metadata.cityCandidates) {
         document.getElementById('candidates').removeAttribute('hidden');
@@ -133,10 +160,6 @@ function populateForm(metadata) {
     }
 }
 
-function selectCity(sel) {
-    document.getElementById('city').value = sel.selectedOptions[0].value;
-}
-
 async function parse(file) {
     const exif = await exifr.parse(file);
 
@@ -144,12 +167,15 @@ async function parse(file) {
         delete exif['ComponentsConfiguration'];
     }
 
+    const ts = getTimestamp(exif);
+
     return {
         'filename': extractFilename(file.name),
         'latitude': exif.latitude,
         'longitude': exif.longitude,
         'altitude': attrOr(exif, 'GPSAltitude', 0),
-        'timestamp': getTimestamp(exif),
+        'timestamp': ts.toISOString(),
+        'tzoffset': ts.getTimezoneOffset(),
         'raw': exif,
     }
 }
@@ -215,3 +241,7 @@ async function sha256(file) {
 
 document.getElementById('photo').addEventListener('change', processPhoto);
 document.getElementById('submit').addEventListener('click', uploadPhoto);
+
+document.getElementById('cityCandidates').addEventListener('change', evt => {
+    document.getElementById('city').value = evt.target.selectedOptions[0].value;
+});
