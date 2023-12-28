@@ -8,45 +8,12 @@ from django.conf import settings
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 
-from jsonrpc.backend.django import api
-
 from photos.models import Photo, Coordinates, Location, RawMetadata
+from photos.utils import get_photos, add_authed_method
 
 DEFAULT_ZOOM = 15
 MAX_ZOOM = 22
 DEFAULT_RADIUS = 12
-
-
-def mkurls(photo: Photo) -> dict[str, str]:
-    base = 'https://{}/cdn-cgi/imagedelivery/{}/{}'.format(
-        settings.CLOUDFLARE_IMAGES_DOMAIN,
-        settings.CLOUDFLARE_IMAGES_ACCOUNT_HASH,
-        photo.id,
-    )
-
-    return {
-        'popup': f'{base}/popup',
-        'favorite': f'{base}/favorite',
-        'desktop': f'{base}/desktop',
-        'mobile': f'{base}/mobile',
-    }
-
-
-# https://catsof.asia/cdn-cgi/imagedelivery/<account_id>/7a430cf5-9755-417f-e4fd-aa4ace106b00/mobile
-def get_photos():
-    photos = Photo.objects.select_related('coordinates__location').all()
-    return [
-        {
-            'sha256': p.sha256,
-            'timestamp': p.timestamp.isoformat(),
-            'latitude': p.coordinates.latitude,
-            'longitude': p.coordinates.longitude,
-            'city': p.coordinates.location.city,
-            'country': p.coordinates.location.country,
-            'urls': mkurls(p),
-        }
-        for p in photos
-    ]
 
 
 @require_http_methods(['GET'])
@@ -71,7 +38,7 @@ def upload(request):
     return render(request, 'photos/upload.html')
 
 
-@api.dispatcher.add_method # create wrapper that requires auth and csrf token
+@add_authed_method
 def photo_exists(request, sha256: str) -> bool:
     return Photo.objects.filter(sha256=sha256).first() is not None
 
@@ -83,7 +50,7 @@ URL_TMPL = 'https://maps.googleapis.com/maps/api/geocode/json?language=en&latlng
 &key={api_key}&result_type=country|%s' % '|'.join(CITY_CANDIDATES)
 
 
-@api.dispatcher.add_method
+@add_authed_method
 def get_location(request, latitude: float, longitude: float) -> dict[str, object]:
     coords = Coordinates.objects.filter(latitude=latitude, longitude=longitude).first()
 
@@ -110,7 +77,7 @@ def get_location(request, latitude: float, longitude: float) -> dict[str, object
     return payload
 
 
-@api.dispatcher.add_method
+@add_authed_method
 def create_upload_url(request):
     url = 'https://api.cloudflare.com/client/v4/accounts/{}/images/v2/direct_upload'.format(
         settings.CLOUDFLARE_IMAGES_ACCOUNT_ID)
@@ -124,7 +91,7 @@ def create_upload_url(request):
         return json.load(response)['result']
 
 
-@api.dispatcher.add_method
+@add_authed_method
 def add_photo(request, metadata: dict[str, object]):
     coords = Coordinates.objects.filter(latitude=metadata['latitude'], longitude=metadata['longitude']).first()
 

@@ -6,10 +6,15 @@
 // FIXME switch to prod url once this service is out of beta https://www.jsdelivr.com/esm
 import {HTTPTransport, RequestManager, Client} from 'https://esm.run/@open-rpc/client-js';
 
-const client = new Client(new RequestManager([new HTTPTransport(jsonRpcUrl)]));
-
 export default () => {};
 
+const transport = new HTTPTransport(jsonRpcUrl, {
+    headers: {
+        'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,
+    },
+});
+
+const client = new Client(new RequestManager([transport]));
 let metadata = {};
 
 async function processPhoto(evt) {
