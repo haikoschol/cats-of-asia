@@ -49,7 +49,7 @@ async function uploadPhoto(evt) {
         return;
     }
 
-    const file = document.getElementById('photo').files[0];
+    const file = document.getElementById('picker').files[0];
     const formData = new FormData();
     formData.append('file', file);
 
@@ -71,14 +71,14 @@ async function uploadPhoto(evt) {
 }
 
 function toggleLoadingState(loading) {
-    const photo = document.getElementById('photo');
+    const picker = document.getElementById('picker');
     const submit = document.getElementById('submit');
 
     if (loading) {
-        photo.setAttribute('disabled', 'disabled');
+        picker.setAttribute('disabled', 'disabled');
         submit.setAttribute('aria-busy', 'true'); // FIXME has no effect
     } else {
-        photo.removeAttribute('disabled');
+        picker.removeAttribute('disabled');
         submit.removeAttribute('aria-busy');
     }
 }
@@ -99,7 +99,7 @@ function resetForm() {
     form.reset();
     form.setAttribute('hidden', 'hidden');
 
-    const picker = document.getElementById('photo');
+    const picker = document.getElementById('picker');
     picker.removeAttribute('disabled');
     picker.value = null;
 
@@ -247,7 +247,7 @@ async function sha256(file) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('photo').addEventListener('change', processPhoto);
+    document.getElementById('picker').addEventListener('change', processPhoto);
     document.getElementById('submit').addEventListener('click', uploadPhoto);
 
     document.getElementById('cityCandidates').addEventListener('change', evt => {
