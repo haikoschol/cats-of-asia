@@ -91,6 +91,7 @@ def create_upload_url(request):
         return json.load(response)['result']
 
 
+# TODO validation
 @add_authed_method
 def add_photo(request, metadata: dict[str, object]):
     coords = Coordinates.objects.filter(latitude=metadata['latitude'], longitude=metadata['longitude']).first()
@@ -118,3 +119,4 @@ def add_photo(request, metadata: dict[str, object]):
     )
 
     RawMetadata.objects.create(metadata=metadata['raw'], photo=photo)
+    return {'id': photo.id, 'success': True}

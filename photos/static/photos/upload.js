@@ -15,11 +15,21 @@ const transport = new HTTPTransport(jsonRpcUrl, {
 });
 
 const client = new Client(new RequestManager([transport]));
+
+const picker = document.getElementById('picker');
+const preview = document.getElementById('preview');
+const form = document.getElementById('form');
+const submit = document.getElementById('submit');
+const city = document.getElementById('city');
+const cityCandidates = document.getElementById('cityCandidates');
+const candidatesDiv = document.getElementById('candidates');
+const country = document.getElementById('country');
+
 let metadata = {};
 
 async function processPhoto(evt) {
     const file = evt.target.files[0];
-    const img = loadImage(file, document.getElementById('preview'));
+    const img = loadImage(file, preview);
     metadata.sha256 = await sha256(file);
 
     if (await photoExists(metadata.sha256)) {
@@ -34,9 +44,9 @@ async function processPhoto(evt) {
     populateForm(metadata);
 
     await img;
-    document.getElementById('form').removeAttribute('hidden');
-    document.getElementById('preview').removeAttribute('hidden');
-    document.getElementById('submit').removeAttribute('disabled');
+    form.removeAttribute('hidden');
+    preview.removeAttribute('hidden');
+    submit.removeAttribute('disabled');
 }
 
 async function uploadPhoto(evt) {
@@ -49,7 +59,7 @@ async function uploadPhoto(evt) {
         return;
     }
 
-    const file = document.getElementById('picker').files[0];
+    const file = picker.files[0];
     const formData = new FormData();
     formData.append('file', file);
 
@@ -62,9 +72,9 @@ async function uploadPhoto(evt) {
     }
 
     metadata.id = uploadInfo.id;
-    // updated editable fields
-    metadata.city = document.getElementById('city').value;
-    metadata.country = document.getElementById('country').value;
+    // update editable fields
+    metadata.city = city.value;
+    metadata.country = country.value;
 
     await addPhoto(metadata);
     resetForm();
@@ -85,26 +95,22 @@ function toggleLoadingState(loading) {
 
 function resetForm() {
     metadata = {};
-    const select = document.getElementById('cityCandidates');
-    const len = select.options.length;
+    const len = cityCandidates.options.length;
     for (let i = len; i >= 0; i--) {
-        select.remove(i);
+        cityCandidates.remove(i);
     }
 
-    const submit = document.getElementById('submit');
     submit.setAttribute('disabled', 'disabled');
     submit.removeAttribute('aria-busy');
 
-    const form = document.getElementById('form')
     form.reset();
     form.setAttribute('hidden', 'hidden');
 
-    const picker = document.getElementById('picker');
     picker.removeAttribute('disabled');
     picker.value = null;
 
-    document.getElementById('preview').setAttribute('hidden', 'hidden');
-    document.getElementById('candidates').setAttribute('hidden', 'hidden');
+    preview.setAttribute('hidden', 'hidden');
+    candidatesDiv.setAttribute('hidden', 'hidden');
 }
 
 async function photoExists(sha256) {
@@ -148,22 +154,21 @@ async function addPhoto(metadata) {
 }
 
 function populateForm(metadata) {
-    document.getElementById('country').value = metadata.country;
+    country.value = metadata.country;
 
     if (metadata.cityCandidates) {
-        document.getElementById('candidates').removeAttribute('hidden');
-        const select = document.getElementById('cityCandidates');
+        candidatesDiv.removeAttribute('hidden');
 
         for (let candidate of metadata.cityCandidates) {
            const option = document.createElement('option');
            option.value = candidate;
            option.text = candidate;
-           select.add(option);
+           cityCandidates.add(option);
         }
-        document.getElementById('city').value = select.selectedOptions[0].value;
+        city.value = cityCandidates.selectedOptions[0].value;
     } else {
-        document.getElementById('city').value = metadata.city;
-        document.getElementById('candidates').setAttribute('hidden', 'hidden');
+        city.value = metadata.city;
+        candidatesDiv.setAttribute('hidden', 'hidden');
     }
 }
 
@@ -247,10 +252,10 @@ async function sha256(file) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('picker').addEventListener('change', processPhoto);
-    document.getElementById('submit').addEventListener('click', uploadPhoto);
+    picker.addEventListener('change', processPhoto);
+    submit.addEventListener('click', uploadPhoto);
 
-    document.getElementById('cityCandidates').addEventListener('change', evt => {
+    cityCandidates.addEventListener('change', evt => {
         document.getElementById('city').value = evt.target.selectedOptions[0].value;
     })
 });
