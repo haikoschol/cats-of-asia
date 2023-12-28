@@ -5,14 +5,11 @@
 {% load static %}
 
 {% block javascript %}
-    <script defer src="https://cdn.jsdelivr.net/npm/exifr/dist/lite.umd.js"></script>
-    <script>
-        const jsonRpcUrl = "{% url 'endpoint' %}";
-    </script>
     <script type="module" src="{% static 'photos/upload.js' %}"></script>
 {% endblock %}
 
 {% block content %}
+    <input type="hidden" id="jsonRpcUrl" value="{% url 'endpoint' %}" />
     <label for="picker">Choose a photo</label>
     <input type="file" id="picker" accept="image/jpeg" />
 

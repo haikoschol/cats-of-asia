@@ -3,10 +3,14 @@
 
 'use strict';
 
+import exifr from 'https://cdn.jsdelivr.net/npm/exifr/dist/lite.esm.js';
+
 // FIXME switch to prod url once this service is out of beta https://www.jsdelivr.com/esm
 import {HTTPTransport, RequestManager, Client} from 'https://esm.run/@open-rpc/client-js';
 
 export default () => {};
+
+const jsonRpcUrl = document.getElementById('jsonRpcUrl').value;
 
 const transport = new HTTPTransport(jsonRpcUrl, {
     headers: {
