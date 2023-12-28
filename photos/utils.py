@@ -17,10 +17,9 @@ def mkurls(photo: Photo) -> dict[str, str]:
     )
 
     return {
-        'popup': f'{base}/popup',
-        'favorite': f'{base}/favorite',
         'desktop': f'{base}/desktop',
         'mobile': f'{base}/mobile',
+        'smol': f'{base}/smol',
     }
 
 

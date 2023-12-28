@@ -4,7 +4,7 @@
 function renderFavorites(favorites, images, container) {
     favorites.toArray().forEach(hash => {
         const img = document.createElement('img');
-        img.src = images[hash].urls.favorite;
+        img.src = images[hash].urls.smol;
         img.alt = `cat photo #${hash}`;
         img.className = 'fav-img';
 
