@@ -76,7 +76,7 @@ function toggleLoadingState(loading) {
 
     if (loading) {
         picker.setAttribute('disabled', 'disabled');
-        submit.setAttribute('aria-busy', 'true'); // FIXME has no effect
+        submit.setAttribute('aria-busy', 'true');
     } else {
         picker.removeAttribute('disabled');
         submit.removeAttribute('aria-busy');
