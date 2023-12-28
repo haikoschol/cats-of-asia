@@ -1,0 +1,66 @@
+/*SPDX-FileCopyrightText: 2021 Adam Argyle
+  SPDX-License-Identifier: Apache-2.0
+
+  https://web.dev/articles/building/a-toast-component
+*/
+
+.gui-toast-group {
+    display: grid;
+    justify-content: right;
+    justify-items: right;
+    gap: 1vh;
+    position: fixed;
+    z-index: 1;
+    inset-block-start: 0;
+    inset-inline: 0;
+    padding-block-start: 5vh;
+    padding-right: 5vh;
+    pointer-events: none;
+}
+
+.gui-toast {
+    max-inline-size: min(25ch, 90vw);
+    padding-block: .5ch;
+    padding-inline: 1ch;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-box-shadow);
+    font-size: 1rem;
+    --_bg-lightness: 100%;
+
+    color: black;
+    background: hsl(0 0% var(--_bg-lightness) / 90%);
+
+    --_duration: 3s;
+    --_travel-distance: 0;
+
+    will-change: transform;
+    animation:
+        fade-in .3s ease,
+        slide-in .3s ease,
+        fade-out .3s ease var(--_duration);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .gui-toast {
+        --_travel-distance: 5vh;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .gui-toast {
+        color: white;
+        --_bg-lightness: 20%;
+    }
+}
+
+@keyframes fade-in {
+    from { opacity: 0 }
+}
+
+@keyframes fade-out {
+    to { opacity: 0 }
+}
+
+@keyframes slide-in {
+    from { transform: translateY(var(--_travel-distance, 10px)) }
+}

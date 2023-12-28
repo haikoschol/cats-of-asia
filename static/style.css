@@ -68,3 +68,7 @@
     margin-top: 0;
     margin-right: 2em;
 }
+
+.error {
+    color: red !important;
+}

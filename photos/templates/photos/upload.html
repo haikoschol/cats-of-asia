@@ -4,6 +4,10 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block styles %}
+    <link rel="stylesheet" href="{% static 'photos/toast.css' %}">
+{% endblock %}
+
 {% block javascript %}
     <script type="module" src="{% static 'photos/upload.js' %}"></script>
 {% endblock %}

@@ -5,10 +5,10 @@
 
 import exifr from 'https://cdn.jsdelivr.net/npm/exifr/dist/lite.esm.js';
 
-// FIXME switch to prod url once this service is out of beta https://www.jsdelivr.com/esm
+// FIXME stop using esm.run, it's beta and flaky
 import {HTTPTransport, RequestManager, Client} from 'https://esm.run/@open-rpc/client-js';
 
-export default () => {};
+import {Toast, ErrorToast} from './toast.js';
 
 const jsonRpcUrl = document.getElementById('jsonRpcUrl').value;
 
@@ -34,16 +34,29 @@ let metadata = {};
 async function processPhoto(evt) {
     const file = evt.target.files[0];
     const img = loadImage(file, preview);
+
+    metadata.filename = extractFilename(file.name);
     metadata.sha256 = await sha256(file);
 
-    if (await photoExists(metadata.sha256)) {
-        // TODO throw up toast message
+    const exists = await photoExists(metadata.sha256);
+    if (exists || exists === null) {
+        if (exists) {
+            Toast(`File ${metadata.filename} already exists`);
+        } else {
+            ErrorToast(`Unable to check whether file ${metadata.filename} already exists`);
+        }
         resetForm();
         return;
     }
 
     Object.assign(metadata, await parse(file));
     const location = await getLocation(metadata.latitude, metadata.longitude);
+    if (location === null) {
+        ErrorToast(`Unable to get location for file ${metadata.filename}`);
+        resetForm();
+        return;
+    }
+
     Object.assign(metadata, location);
     populateForm(metadata);
 
@@ -57,8 +70,9 @@ async function uploadPhoto(evt) {
     evt.preventDefault();
     toggleLoadingState(true);
 
-    const uploadInfo = await createUploadURL();
+    const uploadInfo = await createUploadURL(metadata.filename);
     if (uploadInfo === null) {
+        ErrorToast(`Unable to create upload URL for file ${metadata.filename}`);
         resetForm();
         return;
     }
@@ -69,7 +83,7 @@ async function uploadPhoto(evt) {
 
     let response = await fetch(uploadInfo.uploadURL, {method: 'POST', body: formData});
     if (response.status > 299) {
-        // TODO throw up toast error
+        ErrorToast(`Uploading file ${metadata.filename} to Cloudflare Images failed`);
         console.error(response);
         resetForm();
         return;
@@ -81,6 +95,7 @@ async function uploadPhoto(evt) {
     metadata.country = country.value;
 
     await addPhoto(metadata);
+    Toast(`Uploaded file ${metadata.filename} successfully`);
     resetForm();
 }
 
@@ -118,40 +133,30 @@ function resetForm() {
 }
 
 async function photoExists(sha256) {
-    try {
-        return await client.request({method: "photo_exists", params: [sha256]});
-    } catch (e) {
-        // TODO throw up toast error
-        console.error(e);
-    }
-    return true;
+    return await callRpc("photo_exists", sha256);
 }
 
 async function getLocation(latitude, longitude) {
-    try {
-        return await client.request({method: "get_location", params: [latitude, longitude]});
-    } catch (e) {
-        // TODO throw up toast error
-        console.error(e);
-    }
-    return null;
+    return await callRpc("get_location", [latitude, longitude]);
 }
 
 async function createUploadURL() {
-    try {
-        return await client.request({method: "create_upload_url"});
-    } catch (e) {
-        // TODO throw up toast error
-        console.error(e);
-    }
-    return null;
+    return await callRpc("create_upload_url");
 }
 
 async function addPhoto(metadata) {
+    return await callRpc("add_photo", metadata);
+}
+
+async function callRpc(method, params) {
+    const data = {method: method};
+    if (params) {
+        data.params = Array.isArray(params) ? params : [params];
+    }
+
     try {
-        return await client.request({method: "add_photo", params: [metadata]});
+        return await client.request(data);
     } catch (e) {
-        // TODO throw up toast error
         console.error(e);
     }
     return null;
@@ -186,7 +191,6 @@ async function parse(file) {
     const ts = getTimestamp(exif);
 
     return {
-        'filename': extractFilename(file.name),
         'latitude': exif.latitude,
         'longitude': exif.longitude,
         'altitude': attrOr(exif, 'GPSAltitude', 0),
@@ -260,6 +264,6 @@ document.addEventListener('DOMContentLoaded', () => {
     submit.addEventListener('click', uploadPhoto);
 
     cityCandidates.addEventListener('change', evt => {
-        document.getElementById('city').value = evt.target.selectedOptions[0].value;
-    })
+        city.value = evt.target.selectedOptions[0].value;
+    });
 });
