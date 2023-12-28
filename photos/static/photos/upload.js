@@ -143,10 +143,7 @@ async function addPhoto(metadata) {
 }
 
 function populateForm(metadata) {
-    document.getElementById('filename').value = metadata.filename;
     document.getElementById('country').value = metadata.country;
-    document.getElementById('timestamp').value = metadata.timestamp;
-    document.getElementById('tzoffset').value = metadata.tzoffset;
 
     if (metadata.cityCandidates) {
         document.getElementById('candidates').removeAttribute('hidden');
@@ -244,9 +241,11 @@ async function sha256(file) {
         .join("");
 }
 
-document.getElementById('photo').addEventListener('change', processPhoto);
-document.getElementById('submit').addEventListener('click', uploadPhoto);
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('photo').addEventListener('change', processPhoto);
+    document.getElementById('submit').addEventListener('click', uploadPhoto);
 
-document.getElementById('cityCandidates').addEventListener('change', evt => {
-    document.getElementById('city').value = evt.target.selectedOptions[0].value;
+    document.getElementById('cityCandidates').addEventListener('change', evt => {
+        document.getElementById('city').value = evt.target.selectedOptions[0].value;
+    })
 });
