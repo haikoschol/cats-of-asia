@@ -18,8 +18,6 @@ const client = new Client(new RequestManager([transport]));
 let metadata = {};
 
 async function processPhoto(evt) {
-    toggleLoadingState(true);
-
     const file = evt.target.files[0];
     const img = loadImage(file, document.getElementById('preview'));
     metadata.sha256 = await sha256(file);
@@ -36,7 +34,8 @@ async function processPhoto(evt) {
     populateForm(metadata);
 
     await img;
-    toggleLoadingState(false);
+    document.getElementById('form').removeAttribute('hidden');
+    document.getElementById('preview').removeAttribute('hidden');
     document.getElementById('submit').removeAttribute('disabled');
 }
 
@@ -96,8 +95,14 @@ function resetForm() {
     submit.setAttribute('disabled', 'disabled');
     submit.removeAttribute('aria-busy');
 
-    document.getElementById('form').reset();
-    document.getElementById('photo').removeAttribute('disabled');
+    const form = document.getElementById('form')
+    form.reset();
+    form.setAttribute('hidden', 'hidden');
+
+    const picker = document.getElementById('photo');
+    picker.removeAttribute('disabled');
+    picker.value = null;
+
     document.getElementById('preview').setAttribute('hidden', 'hidden');
     document.getElementById('candidates').setAttribute('hidden', 'hidden');
 }

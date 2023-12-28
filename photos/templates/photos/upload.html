@@ -13,12 +13,13 @@
 {% endblock %}
 
 {% block content %}
+    <label for="photo">Choose a photo</label>
+    <input type="file" id="photo" accept="image/jpeg" />
+
     <div class="grid">
-        <img id="preview" src="" alt="Preview of the photo you selected" hidden="" />
-        <form id="form" method="post" enctype="multipart/form-data">
+        <img id="preview" src="" alt="Preview of the photo you selected" hidden="hidden" />
+        <form id="form" method="post" enctype="multipart/form-data" hidden="hidden">
             {% csrf_token %}
-            <label for="photo">Choose a photo</label>
-            <input type="file" id="photo" name="photo" accept="image/jpeg" />
 
             <label for="city">City</label>
             <input type="text" id="city" name="city" />
