@@ -13,23 +13,25 @@
 {% endblock %}
 
 {% block content %}
-    <form id="form" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <label for="photo">Choose a photo</label>
-        <input type="file" id="photo" name="photo" accept="image/jpeg" />
+    <div class="grid">
+        <img id="preview" src="" alt="Preview of the photo you selected" hidden="" />
+        <form id="form" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label for="photo">Choose a photo</label>
+            <input type="file" id="photo" name="photo" accept="image/jpeg" />
 
-        <label for="city">City</label>
-        <input type="text" id="city" name="city" />
+            <label for="city">City</label>
+            <input type="text" id="city" name="city" />
 
-        <div id="candidates" hidden="hidden">
-            <label for="cityCandidates">City Candidates</label>
-            <select id="cityCandidates"></select>
-        </div>
+            <div id="candidates" hidden="hidden">
+                <label for="cityCandidates">City Candidates</label>
+                <select id="cityCandidates"></select>
+            </div>
 
-        <label for="country">Country</label>
-        <input type="text" id="country" name="country" />
+            <label for="country">Country</label>
+            <input type="text" id="country" name="country" />
 
-        <input type="submit" id="submit" name="submit" value="Upload" disabled />
-    </form>
-    <img id="preview" src="" alt="Preview of the photo you selected" hidden="" />
+            <input type="submit" id="submit" name="submit" value="Upload" disabled />
+        </form>
+    </div>
 {% endblock %}
