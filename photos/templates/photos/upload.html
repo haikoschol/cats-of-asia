@@ -9,31 +9,15 @@
 {% endblock %}
 
 {% block javascript %}
+    <script type="module" src="{% static 'photos/components/uploader.js' %}"></script>
     <script type="module" src="{% static 'photos/upload.js' %}"></script>
 {% endblock %}
 
 {% block content %}
     {% csrf_token %}
     <input type="hidden" id="jsonRpcUrl" value="{% url 'endpoint' %}" />
-    <label for="picker">Choose a photo</label>
-    <input type="file" id="picker" accept="image/jpeg" />
+    <label for="picker">Choose one or more photos</label>
+    <input type="file" id="picker" accept="image/jpeg" multiple />
 
-    <div class="grid">
-        <img id="preview" src="" alt="Preview of the photo you selected" hidden="hidden" />
-        <form id="form" method="post" enctype="multipart/form-data" hidden="hidden">
-
-            <label for="city">City</label>
-            <input type="text" id="city" name="city" />
-
-            <div id="candidates" hidden="hidden">
-                <label for="cityCandidates">City Candidates</label>
-                <select id="cityCandidates"></select>
-            </div>
-
-            <label for="country">Country</label>
-            <input type="text" id="country" name="country" />
-
-            <button id="submit" disabled>Upload</button>
-        </form>
-    </div>
+    <div id="uploaderContainer"></div>
 {% endblock %}
