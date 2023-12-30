@@ -13,6 +13,7 @@
 {% endblock %}
 
 {% block content %}
+    {% csrf_token %}
     <input type="hidden" id="jsonRpcUrl" value="{% url 'endpoint' %}" />
     <label for="picker">Choose a photo</label>
     <input type="file" id="picker" accept="image/jpeg" />
@@ -20,7 +21,6 @@
     <div class="grid">
         <img id="preview" src="" alt="Preview of the photo you selected" hidden="hidden" />
         <form id="form" method="post" enctype="multipart/form-data" hidden="hidden">
-            {% csrf_token %}
 
             <label for="city">City</label>
             <input type="text" id="city" name="city" />
