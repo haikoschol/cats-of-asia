@@ -33,6 +33,16 @@
     </script>
 {% endblock %}
 
+{% block nav %}
+<li>
+    <details id="placesDropdown" role="list" style="z-index: 1000">
+        <summary aria-haspopup="listbox" role="button">Places</summary>
+        <ul id="placesUl" role="listbox">
+        </ul>
+    </details>
+</li>
+{% endblock %}
+
 {% block content %}
     <div id="cattos"></div>
 {% endblock %}

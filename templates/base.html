@@ -28,13 +28,8 @@
     <nav>
         <ul>
             <li><strong>Cats Of Asia</strong></li>
-            <li>
-                <details id="placesDropdown" role="list" style="z-index: 1000">
-                    <summary aria-haspopup="listbox" role="button">Places</summary>
-                    <ul id="placesUl" role="listbox">
-                    </ul>
-                </details>
-            </li>
+            {% block nav %}
+            {% endblock %}
             <li>
                 <a href="{% url 'index' %}">Map</a>
             </li>
