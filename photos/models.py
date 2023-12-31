@@ -28,6 +28,7 @@ class Coordinates(models.Model):
                 name='unique_latitude_longitude_altitude',
             ),
         ]
+        verbose_name_plural = 'Coordinates'
 
 
 class Photo(models.Model):
