@@ -5,6 +5,7 @@ import json
 import urllib
 
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 
@@ -32,8 +33,8 @@ def favorites(request):
     return render(request, 'photos/favorites.html', {'photos': json.dumps(get_photos())})
 
 
-# TODO require auth
 @require_http_methods(['GET'])
+@login_required
 def upload(request):
     return render(request, 'photos/upload.html')
 

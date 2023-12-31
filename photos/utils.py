@@ -51,12 +51,11 @@ def add_authed_method(f: callable):
                 message='permission denied'
             )
 
-        # TODO enable together with user management
-        # if not request.user.is_authenticated:
-        #     raise JSONRPCDispatchException(
-        #         code=HTTPStatus.UNAUTHORIZED,
-        #         message='requires authentication'
-        #     )
+        if not request.user.is_authenticated:
+            raise JSONRPCDispatchException(
+                code=HTTPStatus.UNAUTHORIZED,
+                message='requires authentication'
+            )
 
         return f(request, *args, **kwargs)
 

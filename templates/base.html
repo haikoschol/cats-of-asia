@@ -36,9 +36,11 @@
             <li>
                 <a href="{% url 'favorites' %}">Favorites</a>
             </li>
+        {% if user.is_authenticated %}
             <li>
                 <a href="{% url 'upload' %}">Upload</a>
             </li>
+        {% endif %}
         </ul>
     </nav>
     {% block content %}
