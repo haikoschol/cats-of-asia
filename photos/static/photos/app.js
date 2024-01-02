@@ -223,27 +223,42 @@ function setMapView(map, images) {
 }
 
 function initPlaces(images, map) {
-    const placesUl = document.getElementById('placesUl');
-    const places = {};
-
-    images.forEach(img => places[formatLocation(img)] = img);
+    const places = imagesByPlace(images);
     const sorted = Object.keys(places).sort();
+    const placesUl = document.getElementById('placesUl');
 
     for (const label of sorted) {
         const li = document.createElement('li');
         const a = document.createElement('a');
-        const {latitude, longitude} = places[label];
 
         a.innerText = label;
         a.onclick = () => {
+            const items = places[label];
+            const img = items[Math.floor(Math.random() * items.length)];
             document.getElementById('placesDropdown').removeAttribute('open');
-            map.setView([latitude, longitude], defaultZoomLevel);
+            map.setView([img.latitude, img.longitude], defaultZoomLevel);
             updateCurrentPosition(map);
         }
 
         li.appendChild(a);
         placesUl.appendChild(li);
     }
+}
+
+function imagesByPlace(images) {
+    const places = {};
+
+    images.forEach(img => {
+        const loc = formatLocation(img);
+        const p = places[loc];
+
+        if(Array.isArray(p)) {
+            p.push(img)
+        } else {
+            places[loc] = [img];
+        }
+    });
+    return places;
 }
 
 function getCurrentPosition(images) {
