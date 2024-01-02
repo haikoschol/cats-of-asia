@@ -83,9 +83,7 @@ def create_upload_url(request):
     url = 'https://api.cloudflare.com/client/v4/accounts/{}/images/v2/direct_upload'.format(
         settings.CLOUDFLARE_IMAGES_ACCOUNT_ID)
 
-    # TODO set expiry to now + 2min
-    # https://developers.cloudflare.com/api/operations/cloudflare-images-create-authenticated-direct-upload-url-v-2
-    request = urllib.request.Request(url=url, method='POST', data=None)
+    request = urllib.request.Request(url=url, method='POST')
     request.add_header('Authorization', f'Bearer {settings.CLOUDFLARE_IMAGES_API_KEY}')
 
     with urllib.request.urlopen(request) as response:
