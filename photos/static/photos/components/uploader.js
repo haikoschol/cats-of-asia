@@ -302,7 +302,18 @@ function getTimestamp(exif) {
             return exif[attr]
         }
     }
-    return Date.now()
+
+    // When images with metadata added using https://github.com/haikoschol/check-exif/tree/write-gps are parsed with
+    // exifr.js, the DateTimeOriginal tag is not properly recognized and translated from its integer to string
+    // representation and the timestamp string is not converted to a Date object.
+    // https://www.awaresystems.be/imaging/tiff/tifftags/privateifd/exif/datetimeoriginal.html
+    if (exif['36867']) {
+        const [date, time] = exif['36867'].split(' ')
+        const ts = `${date.replaceAll(':', '-')} ${time}`
+        return new Date(ts)
+    }
+
+    return new Date()
 }
 
 function attrOr(obj, attr, def) {
