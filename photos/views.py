@@ -1,13 +1,15 @@
 # SPDX-FileCopyrightText: 2023 Haiko Schol
 # SPDX-License-Identifier: GPL-3.0-or-later
-
+import datetime
 import json
 import urllib
+import uuid
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
+from pydantic import BaseModel
 
 from photos.models import Photo, Coordinates, Location, RawMetadata
 from photos.utils import get_photos, add_authed_method
@@ -90,32 +92,46 @@ def create_upload_url(request):
         return json.load(response)['result']
 
 
-# TODO validation
+class PhotoMetadata(BaseModel):
+    id: uuid.UUID
+    filename: str
+    sha256: str
+    latitude: float
+    longitude: float
+    altitude: float
+    city: str
+    country: str
+    tzoffset: int
+    timestamp: datetime.datetime
+    raw: dict[str, object]
+
+
 @add_authed_method
 def add_photo(request, metadata: dict[str, object]):
-    coords = Coordinates.objects.filter(latitude=metadata['latitude'], longitude=metadata['longitude']).first()
+    pm = PhotoMetadata(**metadata)
+    coords = Coordinates.objects.filter(latitude=pm.latitude, longitude=pm.longitude).first()
 
     if not coords:
         loc, _ = Location.objects.get_or_create(
-            city=metadata['city'],
-            country=metadata['country'],
-            tzoffset=metadata['tzoffset'],
+            city=pm.city,
+            country=pm.country,
+            tzoffset=pm.tzoffset,
         )
 
         coords = Coordinates.objects.create(
-            latitude=metadata['latitude'],
-            longitude=metadata['longitude'],
-            altitude=metadata['altitude'],
+            latitude=pm.latitude,
+            longitude=pm.longitude,
+            altitude=pm.altitude,
             location=loc,
         )
 
     photo = Photo.objects.create(
-        id=metadata['id'],
-        filename=metadata['filename'],
-        sha256=metadata['sha256'],
-        timestamp=metadata['timestamp'],
+        id=pm.id,
+        filename=pm.filename,
+        sha256=pm.sha256,
+        timestamp=pm.timestamp,
         coordinates=coords,
     )
 
-    RawMetadata.objects.create(metadata=metadata['raw'], photo=photo)
-    return {'id': photo.id, 'success': True}
+    RawMetadata.objects.create(metadata=pm.raw, photo=photo)
+    return {'id': str(photo.id), 'success': True}
