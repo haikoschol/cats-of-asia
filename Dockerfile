@@ -20,6 +20,7 @@ WORKDIR $APP_HOME
 COPY pyproject.toml poetry.lock manage.py ./
 COPY catsofasia ./catsofasia
 COPY photos ./photos
+COPY templates ./templates
 RUN $POETRY_HOME/bin/poetry run pip install gunicorn==21.2.0
 RUN $POETRY_HOME/bin/poetry install --without=dev
 
