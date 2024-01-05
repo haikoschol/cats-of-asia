@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2023 Haiko Schol
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from django.db import models
+from django.db import models, connection
 
 
 class Location(models.Model):
@@ -13,6 +13,13 @@ class Location(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['city', 'country'], name='unique_city_country'),
         ]
+
+    def __str__(self):
+        if self.city and self.country:
+            return f'{self.city}, {self.country}'
+        if self.country:
+            return self.country
+        return 'an undisclosed location'
 
 
 class Coordinates(models.Model):
@@ -58,3 +65,28 @@ class Post(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['photo', 'platform'], name='unique_photo_platform'),
         ]
+
+
+def get_unused_photo(platform_name: str) -> Photo:
+    # Just use squeel!
+    query = """
+SELECT p.*
+FROM photos_photo p
+WHERE p.sha256 NOT IN (
+    SELECT po.photo_id
+    FROM photos_post po
+    INNER JOIN photos_platform pl ON po.platform_id = pl.id
+    WHERE LOWER(pl.name) = LOWER(%s)
+)
+ORDER BY RANDOM()
+LIMIT 1;
+"""
+
+    with connection.cursor() as cursor:
+        cursor.execute(query, [platform_name])
+        result = cursor.fetchone()
+
+    if result:
+        return Photo(*result)
+
+    raise RuntimeError(f"Ran out of content for {platform_name}! 😱")

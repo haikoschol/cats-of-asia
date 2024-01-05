@@ -16,6 +16,7 @@ psycopg = {extras = ["binary"], version = "^3.1.14"}
 django-storages = {extras = ["s3"], version = "^1.14.2"}
 json-rpc = "^1.15.0"
 pydantic = "^2.5.3"
+mastodon-py = "^1.8.1"
 
 
 [tool.poetry.group.dev.dependencies]
