@@ -116,8 +116,6 @@ STATICFILES_DIRS = [
 if IS_DEVSERVER:
     STATIC_URL = '/static/'
 else:
-    STATIC_URL = env('STATIC_URL')
-
     STORAGES = {
         "staticfiles": {
             "BACKEND": "storages.backends.s3.S3Storage",
@@ -127,5 +125,8 @@ else:
             },
         },
     }
+
+    STATIC_URL = env('STATIC_URL')
+    AWS_S3_CUSTOM_DOMAIN = STATIC_URL.replace('https://', '').replace('/', '')
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
