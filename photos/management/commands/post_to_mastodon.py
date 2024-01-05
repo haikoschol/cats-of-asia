@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from mastodon import Mastodon
 
-from photos.models import Photo, get_unused_photo
+from photos.models import Photo, Post, Platform
 from photos.utils import mkurls
 
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0'
@@ -22,7 +22,8 @@ class Command(BaseCommand):
             api_base_url=settings.MASTODON_BASE_URL,
         )
 
-        photo = get_unused_photo('mastodon')
+        platform = Platform.objects.filter(name__iexact='mastodon').first()
+        photo = platform.get_unused_photo()
         url = mkurls(photo)['desktop']
         status = render_status(photo)
 
@@ -42,6 +43,7 @@ class Command(BaseCommand):
             )
             mastodon.status_post(status=status, media_ids=[media])
 
+        Post.objects.create(photo=photo, platform=platform)
         self.stdout.write(self.style.SUCCESS('Successfully posted image to Mastodon'))
 
 

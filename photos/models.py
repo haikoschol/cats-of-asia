@@ -55,6 +55,30 @@ class Platform(models.Model):
     name = models.TextField(unique=True)
     profile_url = models.URLField(unique=True)
 
+    def get_unused_photo(self) -> Photo:
+        # Just use squeel!
+        query = """
+            SELECT p.*
+            FROM photos_photo p
+            WHERE p.sha256 NOT IN (
+                SELECT po.photo_id
+                FROM photos_post po
+                INNER JOIN photos_platform pl ON po.platform_id = pl.id
+                WHERE pl.id = %s
+            )
+            ORDER BY RANDOM()
+            LIMIT 1;
+        """
+
+        with connection.cursor() as cursor:
+            cursor.execute(query, [self.id])
+            result = cursor.fetchone()
+
+        if result:
+            return Photo(*result)
+
+        raise RuntimeError(f"Ran out of content for {self.name}! 😱")
+
 
 class Post(models.Model):
     photo = models.ForeignKey(Photo, to_field='sha256', on_delete=models.CASCADE)
@@ -65,28 +89,3 @@ class Post(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['photo', 'platform'], name='unique_photo_platform'),
         ]
-
-
-def get_unused_photo(platform_name: str) -> Photo:
-    # Just use squeel!
-    query = """
-SELECT p.*
-FROM photos_photo p
-WHERE p.sha256 NOT IN (
-    SELECT po.photo_id
-    FROM photos_post po
-    INNER JOIN photos_platform pl ON po.platform_id = pl.id
-    WHERE LOWER(pl.name) = LOWER(%s)
-)
-ORDER BY RANDOM()
-LIMIT 1;
-"""
-
-    with connection.cursor() as cursor:
-        cursor.execute(query, [platform_name])
-        result = cursor.fetchone()
-
-    if result:
-        return Photo(*result)
-
-    raise RuntimeError(f"Ran out of content for {platform_name}! 😱")
