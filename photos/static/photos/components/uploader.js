@@ -64,6 +64,7 @@ class CoaUploader extends HTMLElement {
             case 'picker-id':
                 this.pickerId = newValue
                 this.setFile()
+                break
             case 'file-idx':
                 this.fileIdx = Number(newValue)
                 this.setFile()
