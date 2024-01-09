@@ -21,33 +21,52 @@ env = environ.Env(
     DEBUG=(bool, False)
 )
 
+# seemed like a good idea at first...
 IS_DEVSERVER = len(sys.argv) >= 2 and sys.argv[1] == 'runserver'
+IS_COLLECTSTATIC = len(sys.argv) >= 2 and sys.argv[1] == 'collectstatic'
+IS_MIGRATE = len(sys.argv) >= 2 and sys.argv[1] == 'migrate'
 IS_CRONJOB = len(sys.argv) >= 2 and sys.argv[1] == 'post_to_mastodon'
+IS_GUNICORN = not (IS_DEVSERVER or IS_CRONJOB or IS_COLLECTSTATIC or IS_MIGRATE)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(BASE_DIR / ".env")
 
-# env vars shared between server process and cron job
-CLOUDFLARE_IMAGES_DOMAIN = env('CLOUDFLARE_IMAGES_DOMAIN')
-CLOUDFLARE_IMAGES_ACCOUNT_HASH = env('CLOUDFLARE_IMAGES_ACCOUNT_HASH')
+if IS_COLLECTSTATIC:
+    STATIC_ROOT = "./collectedstatic"
+
+if IS_DEVSERVER or IS_COLLECTSTATIC:
+    STATIC_URL = '/static/'
+
+# shared between dev server, gunicorn and cron job
+if not (IS_COLLECTSTATIC or IS_MIGRATE):
+    CLOUDFLARE_IMAGES_DOMAIN = env('CLOUDFLARE_IMAGES_DOMAIN')
+    CLOUDFLARE_IMAGES_ACCOUNT_HASH = env('CLOUDFLARE_IMAGES_ACCOUNT_HASH')
 
 if IS_CRONJOB:
     MASTODON_ACCESS_TOKEN = env('MASTODON_ACCESS_TOKEN')
     MASTODON_BASE_URL = env('MASTODON_BASE_URL')
-else:
+
+if IS_DEVSERVER or IS_GUNICORN:
     MAPBOX_ACCESS_TOKEN = env('MAPBOX_ACCESS_TOKEN')
     CLOUDFLARE_IMAGES_ACCOUNT_ID = env('CLOUDFLARE_IMAGES_ACCOUNT_ID')
     CLOUDFLARE_IMAGES_API_KEY = env('CLOUDFLARE_IMAGES_API_KEY')
     GOOGLE_MAPS_API_KEY = env('GOOGLE_MAPS_API_KEY')
-    SECRET_KEY = env('SECRET_KEY')
 
+if IS_GUNICORN:
+    STATIC_URL = env('STATIC_URL')
+
+SECRET_KEY = env('SECRET_KEY')
 DEBUG = env('DEBUG')
 try:
     ALLOWED_HOSTS = env('ALLOWED_HOSTS').split(',')
     CSRF_TRUSTED_ORIGINS = [f'https://{h}' for h in ALLOWED_HOSTS]
 except ImproperlyConfigured:
     ALLOWED_HOSTS = []
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -114,25 +133,5 @@ LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
-
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
-
-if IS_DEVSERVER:
-    STATIC_URL = '/static/'
-elif not IS_CRONJOB:
-    STORAGES = {
-        "staticfiles": {
-            "BACKEND": "storages.backends.s3.S3Storage",
-            "OPTIONS": {
-                'bucket_name': env('AWS_STORAGE_BUCKET_NAME'),
-                'endpoint_url': env('AWS_S3_ENDPOINT_URL'),
-            },
-        },
-    }
-
-    STATIC_URL = env('STATIC_URL')
-    AWS_S3_CUSTOM_DOMAIN = STATIC_URL.replace('https://', '').replace('/', '')
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
