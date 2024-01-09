@@ -30,6 +30,7 @@ def get_photos() -> list[dict[str, object]]:
     photos = Photo.objects.select_related('coordinates__location').all()
     return [
         {
+            'id': str(p.id),
             'sha256': p.sha256,
             'timestamp': p.timestamp.isoformat(),
             'latitude': p.coordinates.latitude,
