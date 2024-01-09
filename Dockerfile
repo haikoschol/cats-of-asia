@@ -26,6 +26,8 @@ RUN $POETRY_HOME/bin/poetry install --no-root --without=dev
 
 from env as production
 
+LABEL org.opencontainers.image.source=https://github.com/haikoschol/cats-of-asia
+
 COPY --from=builder $APP_HOME $APP_HOME
 
 WORKDIR $APP_HOME

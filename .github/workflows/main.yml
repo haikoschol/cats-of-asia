@@ -48,6 +48,8 @@ jobs:
   build-docker-image:
     needs: collectstatic-and-migrate-db
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
 
     steps:
       - name: Check out the repository
@@ -69,5 +71,5 @@ jobs:
         with:
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/cats-of-asia/coa:${{ steps.sha.outputs.sha }}
-            ghcr.io/${{ github.repository_owner }}/cats-of-asia/coa:latest
+            ghcr.io/${{ github.repository_owner }}/cats-of-asia:${{ steps.sha.outputs.sha }}
+            ghcr.io/${{ github.repository_owner }}/cats-of-asia:latest
