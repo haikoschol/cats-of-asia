@@ -45,6 +45,7 @@ else:
 DEBUG = env('DEBUG')
 try:
     ALLOWED_HOSTS = env('ALLOWED_HOSTS').split(',')
+    CSRF_TRUSTED_ORIGINS = [f'https://{h}' for h in ALLOWED_HOSTS]
 except ImproperlyConfigured:
     ALLOWED_HOSTS = []
 
