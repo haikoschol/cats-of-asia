@@ -27,7 +27,7 @@
         const iconNonFavorite = '{% static 'photos/favorite.svg' %}'
         const shareIcon = '{% static 'photos/share.svg' %}'
         const accessToken = '{{ access_token|safe }}'
-        let images = {{ photos|safe }}
+        let photos = {{ photos|safe }}
 
         document.addEventListener('DOMContentLoaded', () => init('cattos', accessToken).catch(console.error))
     </script>

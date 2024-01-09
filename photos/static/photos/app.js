@@ -6,10 +6,10 @@ let map = null;
 // TODO use srcset for images everywhere
 // https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/srcset
 // https://developers.cloudflare.com/images/image-resizing/responsive-images/
-function makePopupContent(image, map, favorites) {
-    const {sha256, timestamp, urls} = image;
+function makePopupContent(photo, map, favorites) {
+    const {id, sha256, timestamp, urls} = photo;
     const date = new Date(timestamp).toDateString();
-    const location = formatLocation(image);
+    const location = formatLocation(photo);
     const outer = document.createElement('div');
     const catImage = makeImageLink(urls.desktop, urls.smol, `a photo of one or more cats`);
     outer.appendChild(catImage);
@@ -49,13 +49,13 @@ function makeImageLink(href, src, alt) {
     return a;
 }
 
-function makeFavoriteButton(imageHash, favorites) {
-    const icon = favorites.iconForStatus(imageHash);
+function makeFavoriteButton(photoHash, favorites) {
+    const icon = favorites.iconForStatus(photoHash);
     const favButton = new IconButton(icon, 'add/remove this cat to/from your favorites');
 
     favButton.onclick = () => {
-        favorites.toggle(imageHash);
-        favButton.src = favorites.iconForStatus(imageHash);
+        favorites.toggle(photoHash);
+        favButton.src = favorites.iconForStatus(photoHash);
         favorites.write();
     }
     return favButton;
@@ -93,12 +93,12 @@ class IconButton {
     }
 }
 
-function shareCatto(imageId, zoomLevel) {
+function shareCatto(photoId, zoomLevel) {
     const protocol = window.location.hostname === 'localhost' ? 'http' : 'https';
-    const url = `${protocol}://${window.location.hostname}${window.location.pathname}?imageId=${imageId}&zoomLevel=${zoomLevel}`;
+    const url = `${protocol}://${window.location.hostname}${window.location.pathname}?id=${photoId}&zoomLevel=${zoomLevel}`;
 
     navigator.share({
-        title: `${document.title} #${imageId}`,
+        title: `${document.title} #${photoId}`,
         text: 'Check out this cat!',
         url: url,
     })
@@ -106,17 +106,17 @@ function shareCatto(imageId, zoomLevel) {
         .catch(error => console.log('error sharing:', error));
 }
 
-function formatLocation(image) {
-    const {city, country} = image;
+function formatLocation(photo) {
+    const {city, country} = photo;
     return city ? `${city}, ${country}` : country
 }
 
-function addCircle(image, map, radius, favorites) {
-    const color = image.randomized ? 'blue' : 'red';
-    const circle = L.circle([image.latitude, image.longitude], {color: color, radius: radius});
+function addCircle(photo, map, radius, favorites) {
+    const color = photo.randomized ? 'blue' : 'red';
+    const circle = L.circle([photo.latitude, photo.longitude], {color: color, radius: radius});
 
     // Passing a function that returns dom elements in order to lazy load the popup images.
-    const popup = circle.bindPopup(() => makePopupContent(image, map, favorites));
+    const popup = circle.bindPopup(() => makePopupContent(photo, map, favorites));
 
     circle.addTo(map);
     return circle;
@@ -130,16 +130,16 @@ function calculateRadius(zoomLevel) {
     return Math.max(radius, 1);
 }
 
-function updateCircleRadii(images, zoomLevel) {
+function updateCircleRadii(photos, zoomLevel) {
     const radius = calculateRadius(zoomLevel);
-    images.forEach(img => img.circle.setRadius(radius));
+    photos.forEach(img => img.circle.setRadius(radius));
 }
 
-// When multiple images have the same coordinates, spread them out so the markers won't overlap completely.
-function adjustCoordinates(images) {
+// When multiple photos have the same coordinates, spread them out so the markers won't overlap completely.
+function adjustCoordinates(photos) {
     const imgsByCoords = {};
 
-    images.forEach(img => {
+    photos.forEach(img => {
         img['randomized'] = false;
         const coords = `${img.latitude},${img.longitude}`;
         const imgsAt = imgsByCoords[coords] || [];
@@ -178,52 +178,52 @@ async function init(divId, accessToken) {
         zoomOffset: -1
     }).addTo(map);
 
-    adjustCoordinates(images);
+    adjustCoordinates(photos);
 
     const radius = calculateRadius(map.getZoom());
-    images.forEach(img => img['circle'] = addCircle(img, map, radius, favorites));
-    setMapView(map, images);
+    photos.forEach(p => p['circle'] = addCircle(p, map, radius, favorites));
+    setMapView(map, photos);
 
     map.on('zoomend', () => {
-        updateCircleRadii(images, map.getZoom());
+        updateCircleRadii(photos, map.getZoom());
         updateCurrentPosition(map);
     });
 
     map.on('moveend', () => updateCurrentPosition(map));
-    initPlaces(images, map);
+    initPlaces(photos, map);
 }
 
 // If url params with image id and optional zoom level are present, center map on that, otherwise try last location
 // from local storage and fall back to default values (coords of first image).
-function setMapView(map, images) {
-    let {latitude, longitude, zoomLevel} = getCurrentPosition(images)
+function setMapView(map, photos) {
+    let {latitude, longitude, zoomLevel} = getCurrentPosition(photos)
 
     const urlParams = new URLSearchParams(window.location.search);
-    const imageId = Number(urlParams.get('imageId'));
+    const photoId = Number(urlParams.get('id'));
     const zoomParam = Number(urlParams.get('zoomLevel'));
-    const imgsFromUrlParam = images.filter(img => img.id === imageId);
+    const photosFromUrlParam = photos.filter(p => p.id === photoId);
 
-    if (imgsFromUrlParam.length === 1) {
+    if (photosFromUrlParam.length === 1) {
         if (zoomParam <= maxZoomLevel && zoomParam >= 1) {
             zoomLevel = zoomParam;
         }
-        const img = imgsFromUrlParam[0];
+        const photo = photosFromUrlParam[0];
 
         // bit of a hack to remove the url params. probably would be better to update them if present
         history.pushState(null, '', window.location.pathname);
 
-        map.setView([img.latitude, img.longitude], zoomLevel);
-        img.circle.openPopup();
+        map.setView([photo.latitude, photo.longitude], zoomLevel);
+        photo.circle.openPopup();
         updateCurrentPosition(map);
     } else {
         map.setView([latitude, longitude], zoomLevel);
     }
 
-    updateCircleRadii(images, zoomLevel);
+    updateCircleRadii(photos, zoomLevel);
 }
 
-function initPlaces(images, map) {
-    const places = imagesByPlace(images);
+function initPlaces(photos, map) {
+    const places = photosByPlace(photos);
     const sorted = Object.keys(places).sort();
     const placesUl = document.getElementById('placesUl');
 
@@ -245,24 +245,24 @@ function initPlaces(images, map) {
     }
 }
 
-function imagesByPlace(images) {
+function photosByPlace(photos) {
     const places = {};
 
-    images.forEach(img => {
-        const loc = formatLocation(img);
-        const p = places[loc];
+    photos.forEach(p => {
+        const loc = formatLocation(p);
+        const entry = places[loc];
 
-        if(Array.isArray(p)) {
-            p.push(img)
+        if(Array.isArray(entry)) {
+            entry.push(p)
         } else {
-            places[loc] = [img];
+            places[loc] = [p];
         }
     });
     return places;
 }
 
-function getCurrentPosition(images) {
-    const [startLatitude, startLongitude] = images.length ? [images[0].latitude, images[0].longitude] : [18.7933987, 98.9841731];
+function getCurrentPosition(photos) {
+    const [startLatitude, startLongitude] = photos.length ? [photos[0].latitude, photos[0].longitude] : [18.7933987, 98.9841731];
     const lsLat = Number(localStorage.getItem('latitude'));
     const lsLng = Number(localStorage.getItem('longitude'));
     const lsZoom = localStorage.getItem('zoomLevel');
