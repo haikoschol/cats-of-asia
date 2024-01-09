@@ -37,6 +37,9 @@ class Coordinates(models.Model):
         ]
         verbose_name_plural = 'Coordinates'
 
+    def __str__(self):
+        return f'{self.latitude},{self.longitude},{self.altitude} in {self.location}'
+
 
 class Photo(models.Model):
     id = models.UUIDField(primary_key=True, editable=False)  # UUID created by Cloudflare Images
@@ -44,6 +47,9 @@ class Photo(models.Model):
     sha256 = models.CharField(max_length=64, unique=True)
     timestamp = models.DateTimeField()
     coordinates = models.ForeignKey(Coordinates, null=True, on_delete=models.SET_NULL)
+
+    def __str__(self):
+        return f'{self.filename} ({self.coordinates.location})'
 
 
 class RawMetadata(models.Model):
@@ -54,6 +60,9 @@ class RawMetadata(models.Model):
 class Platform(models.Model):
     name = models.TextField(unique=True)
     profile_url = models.URLField(unique=True)
+
+    def __str__(self):
+        return self.name
 
     def get_unused_photo(self) -> Photo:
         # Just use squeel!
@@ -89,3 +98,6 @@ class Post(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['photo', 'platform'], name='unique_photo_platform'),
         ]
+
+    def __str__(self):
+        return f'{self.platform}: {self.photo.filename} on {self.created_at}'
