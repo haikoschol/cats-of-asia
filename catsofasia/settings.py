@@ -22,20 +22,25 @@ env = environ.Env(
 )
 
 IS_DEVSERVER = len(sys.argv) >= 2 and sys.argv[1] == 'runserver'
+IS_CRONJOB = len(sys.argv) >= 2 and sys.argv[1] == 'post_to_mastodon'
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(BASE_DIR / ".env")
 
-MAPBOX_ACCESS_TOKEN = env('MAPBOX_ACCESS_TOKEN')
+# env vars shared between server process and cron job
 CLOUDFLARE_IMAGES_DOMAIN = env('CLOUDFLARE_IMAGES_DOMAIN')
-CLOUDFLARE_IMAGES_ACCOUNT_ID = env('CLOUDFLARE_IMAGES_ACCOUNT_ID')
 CLOUDFLARE_IMAGES_ACCOUNT_HASH = env('CLOUDFLARE_IMAGES_ACCOUNT_HASH')
-CLOUDFLARE_IMAGES_API_KEY = env('CLOUDFLARE_IMAGES_API_KEY')
-GOOGLE_MAPS_API_KEY = env('GOOGLE_MAPS_API_KEY')
-SECRET_KEY = env('SECRET_KEY')
-MASTODON_ACCESS_TOKEN = env('MASTODON_ACCESS_TOKEN')
-MASTODON_BASE_URL = env('MASTODON_BASE_URL')
+
+if IS_CRONJOB:
+    MASTODON_ACCESS_TOKEN = env('MASTODON_ACCESS_TOKEN')
+    MASTODON_BASE_URL = env('MASTODON_BASE_URL')
+else:
+    MAPBOX_ACCESS_TOKEN = env('MAPBOX_ACCESS_TOKEN')
+    CLOUDFLARE_IMAGES_ACCOUNT_ID = env('CLOUDFLARE_IMAGES_ACCOUNT_ID')
+    CLOUDFLARE_IMAGES_API_KEY = env('CLOUDFLARE_IMAGES_API_KEY')
+    GOOGLE_MAPS_API_KEY = env('GOOGLE_MAPS_API_KEY')
+    SECRET_KEY = env('SECRET_KEY')
 
 DEBUG = env('DEBUG')
 try:
