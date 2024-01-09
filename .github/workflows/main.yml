@@ -36,7 +36,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          aws s3 sync --endpoint-url ${{ vars.R2_ENDPOINT_URL }} collectedstatic/ s3://coa-static/ --delete
+          aws s3 sync --endpoint-url ${{ vars.R2_ENDPOINT_URL }} collectedstatic/ s3://coa-static/ --delete --debug
 
       - name: Apply database migrations
         env:
