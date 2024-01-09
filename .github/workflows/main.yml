@@ -37,6 +37,8 @@ jobs:
           aws s3 sync --endpoint-url ${{ env.R2_ENDPOINT_URL }} collectedstatic/ s3://coa-static/ --delete
 
       - name: Apply database migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           poetry run python manage.py migrate
 
