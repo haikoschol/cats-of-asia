@@ -120,7 +120,7 @@ STATICFILES_DIRS = [
 
 if IS_DEVSERVER:
     STATIC_URL = '/static/'
-else:
+elif not IS_CRONJOB:
     STORAGES = {
         "staticfiles": {
             "BACKEND": "storages.backends.s3.S3Storage",
