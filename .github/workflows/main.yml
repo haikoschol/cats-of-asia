@@ -26,6 +26,8 @@ jobs:
           poetry install --no-root --without=dev
 
       - name: Collect static files
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           poetry run python manage.py collectstatic --noinput
 
