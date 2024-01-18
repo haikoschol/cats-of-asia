@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 import datetime
 import json
-import urllib
+import urllib.request
 import uuid
 
 from django.conf import settings
