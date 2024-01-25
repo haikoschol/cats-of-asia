@@ -95,7 +95,8 @@ class IconButton {
 
 function shareCatto(photoId, zoomLevel) {
     const protocol = window.location.hostname === 'localhost' ? 'http' : 'https';
-    const url = `${protocol}://${window.location.hostname}${window.location.pathname}?id=${photoId}&zoomLevel=${zoomLevel}`;
+    const maybePort = window.location.hostname === 'localhost' ? ':8000' : '';
+    const url = `${protocol}://${window.location.hostname}${maybePort}${window.location.pathname}?id=${photoId}&zoomLevel=${zoomLevel}`;
 
     navigator.share({
         title: `${document.title} #${photoId}`,
@@ -199,9 +200,8 @@ function setMapView(map, photos) {
     let {latitude, longitude, zoomLevel} = getCurrentPosition(photos)
 
     const urlParams = new URLSearchParams(window.location.search);
-    const photoId = Number(urlParams.get('id'));
     const zoomParam = Number(urlParams.get('zoomLevel'));
-    const photosFromUrlParam = photos.filter(p => p.id === photoId);
+    const photosFromUrlParam = photos.filter(p => p.id === urlParams.get('id'));
 
     if (photosFromUrlParam.length === 1) {
         if (zoomParam <= maxZoomLevel && zoomParam >= 1) {
