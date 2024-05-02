@@ -5,7 +5,7 @@
 {% load static %}
 
 {% block styles %}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="stylesheet" href="{% static 'photos/leaflet-1.9.4.css' %}" />
 
     <style>
         body {
@@ -15,7 +15,7 @@
 {% endblock %}
 
 {% block javascript %}
-    <script defer src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script defer src="{%  static 'photos/leaflet-1.9.4.js' %}"></script>
     <script defer src="{%  static 'photos/common.js' %}"></script>
     <script defer src="{%  static 'photos/app.js' %}"></script>
 
