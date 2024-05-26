@@ -5,9 +5,7 @@
 
 import exifr from 'https://cdn.jsdelivr.net/npm/exifr/dist/lite.esm.js'
 
-// FIXME stop using esm.run, it's beta and flaky
-import {HTTPTransport, RequestManager, Client} from 'https://esm.run/@open-rpc/client-js'
-
+import {JsonRpcClient} from '../rpc.js'
 import {Toast, ErrorToast} from '../toast.js'
 
 const template = `<article style="margin: 1vh 3vh 0 3vh; padding: 4vh 3vh 0 3vh;">
@@ -338,32 +336,4 @@ function extractFilename(path) {
         return path.substring(x+1)
 
     return path
-}
-
-class JsonRpcClient {
-    constructor() {
-        const jsonRpcUrl = document.getElementById('jsonRpcUrl').value
-
-        const transport = new HTTPTransport(jsonRpcUrl, {
-            headers: {
-                'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,
-            },
-        })
-
-        this.client = new Client(new RequestManager([transport]))
-    }
-
-    async call(method, params) {
-        const data = {method: method}
-        if (params) {
-            data.params = Array.isArray(params) ? params : [params]
-        }
-
-        try {
-            return await this.client.request(data)
-        } catch (e) {
-            console.error(e)
-        }
-        return null
-    }
 }

@@ -26,15 +26,15 @@ def mkurls(photo: Photo) -> dict[str, str]:
     }
 
 
-def get_photos() -> list[dict[str, object]]:
-    photos = Photo.objects.select_related('coordinates__location').all()
+def get_photos(photos=None) -> list[dict[str, object]]:
+    photos = photos or Photo.objects.select_related('coordinates__location').all()
     return [
         {
             'id': str(p.id),
             'sha256': p.sha256,
             'timestamp': p.timestamp.isoformat(),
-            'latitude': p.coordinates.latitude,
-            'longitude': p.coordinates.longitude,
+            'latitude': p.coordinates.point.y,
+            'longitude': p.coordinates.point.x,
             'city': p.coordinates.location.city,
             'country': p.coordinates.location.country,
             'urls': mkurls(p),
