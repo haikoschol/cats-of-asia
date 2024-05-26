@@ -22,10 +22,12 @@ env = environ.Env(
 )
 
 # seemed like a good idea at first...
-IS_DEVSERVER = len(sys.argv) >= 2 and sys.argv[1] == 'runserver'
-IS_COLLECTSTATIC = len(sys.argv) >= 2 and sys.argv[1] == 'collectstatic'
-IS_MIGRATE = len(sys.argv) >= 2 and sys.argv[1] == 'migrate'
-IS_CRONJOB = len(sys.argv) >= 2 and sys.argv[1] == 'post_to_mastodon'
+# -1 to make it work with "poetry run ..."
+# -2 to make it work with "... runserver localhost:8000"
+IS_DEVSERVER = len(sys.argv) >= 2 and sys.argv[-1] == 'runserver' or sys.argv[-2] == 'runserver'
+IS_COLLECTSTATIC = len(sys.argv) >= 2 and sys.argv[-1] == 'collectstatic'
+IS_MIGRATE = len(sys.argv) >= 2 and sys.argv[-1] == 'migrate'
+IS_CRONJOB = len(sys.argv) >= 2 and sys.argv[-1] == 'post_to_mastodon'
 IS_GUNICORN = not (IS_DEVSERVER or IS_CRONJOB or IS_COLLECTSTATIC or IS_MIGRATE)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -57,6 +59,11 @@ if IS_DEVSERVER or IS_GUNICORN:
 if IS_GUNICORN:
     STATIC_URL = env('STATIC_URL')
 
+if IS_DEVSERVER:
+    GDAL_LIBRARY_PATH = '/opt/homebrew/lib/libgdal.dylib'
+    GEOS_LIBRARY_PATH = '/opt/homebrew/lib/libgeos_c.dylib'
+    PROJ_LIBRARY_PATH = '/opt/homebrew/lib/libproj.dylib'
+
 DEBUG = env('DEBUG')
 try:
     ALLOWED_HOSTS = env('ALLOWED_HOSTS').split(',')
@@ -69,6 +76,7 @@ STATICFILES_DIRS = [
 ]
 
 INSTALLED_APPS = [
+    "django.contrib.gis",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -108,8 +116,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "catsofasia.wsgi.application"
 
+db_env = env.db()
+db_env["ENGINE"] = "django.contrib.gis.db.backends.postgis"
+
 DATABASES = {
-    "default": env.db(),
+    "default": db_env,
 }
 
 # Password validation

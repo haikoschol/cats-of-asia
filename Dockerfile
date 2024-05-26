@@ -7,8 +7,11 @@ ENV PYTHONUNBUFFERED=1 \
     POETRY_VIRTUALENVS_IN_PROJECT=true \
     POETRY_NO_INTERACTION=1 \
     APP_HOME=/app \
+    DEBIAN_FRONTEND=noninteractive \
     # gets overwritten by Railway
     PORT=8080
+
+RUN apt update && apt install -y binutils libproj-dev gdal-bin && rm -rf /var/lib/apt/lists/*
 
 FROM env as builder
 
