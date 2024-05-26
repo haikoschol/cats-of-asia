@@ -1,7 +1,8 @@
 # SPDX-FileCopyrightText: 2023 Haiko Schol
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from django.db import models, connection
+from django.db import connection
+from django.contrib.gis.db import models
 
 
 class Location(models.Model):
@@ -23,22 +24,21 @@ class Location(models.Model):
 
 
 class Coordinates(models.Model):
-    latitude = models.FloatField()
-    longitude = models.FloatField()
+    point = models.PointField(geography=True, default='POINT(0.0 0.0)')
     altitude = models.FloatField()
     location = models.ForeignKey(Location, on_delete=models.CASCADE)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['latitude', 'longitude', 'altitude'],
-                name='unique_latitude_longitude_altitude',
+                fields=['point', 'altitude'],
+                name='unique_point_altitude',
             ),
         ]
         verbose_name_plural = 'Coordinates'
 
     def __str__(self):
-        return f'{self.latitude},{self.longitude},{self.altitude} in {self.location}'
+        return f'{self.point.y},{self.point.x},{self.altitude} in {self.location}'
 
 
 class Photo(models.Model):
