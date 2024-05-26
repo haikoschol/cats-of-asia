@@ -21,6 +21,10 @@ jobs:
         run: |
           curl -sSL https://install.python-poetry.org | python -
 
+      - name: Install GeoDjango dependencies with apt
+        run: |
+          sudo apt-get install -y binutils libproj-dev gdal-bin
+
       - name: Install dependencies with Poetry
         run: |
           poetry install --no-root --without=dev
