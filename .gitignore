@@ -3,3 +3,4 @@
 .env
 *.pyc
 collectedstatic
+.DS_Store
