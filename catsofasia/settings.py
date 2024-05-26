@@ -59,7 +59,7 @@ if IS_DEVSERVER or IS_GUNICORN:
 if IS_GUNICORN:
     STATIC_URL = env('STATIC_URL')
 
-if IS_DEVSERVER or IS_MIGRATE:
+if IS_DEVSERVER:
     GDAL_LIBRARY_PATH = '/opt/homebrew/lib/libgdal.dylib'
     GEOS_LIBRARY_PATH = '/opt/homebrew/lib/libgeos_c.dylib'
     PROJ_LIBRARY_PATH = '/opt/homebrew/lib/libproj.dylib'
