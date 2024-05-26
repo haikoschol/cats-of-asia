@@ -25,7 +25,7 @@ env = environ.Env(
 # -1 to make it work with "poetry run ..."
 # -2 to make it work with "... runserver localhost:8000"
 IS_DEVSERVER = len(sys.argv) >= 2 and sys.argv[-1] == 'runserver' or sys.argv[-2] == 'runserver'
-IS_COLLECTSTATIC = len(sys.argv) >= 2 and sys.argv[-1] == 'collectstatic'
+IS_COLLECTSTATIC = len(sys.argv) >= 2 and sys.argv[-1] == 'collectstatic' or sys.argv[-2] == 'collectstatic'
 IS_MIGRATE = len(sys.argv) >= 2 and sys.argv[-1] == 'migrate'
 IS_CRONJOB = len(sys.argv) >= 2 and sys.argv[-1] == 'post_to_mastodon'
 IS_GUNICORN = not (IS_DEVSERVER or IS_CRONJOB or IS_COLLECTSTATIC or IS_MIGRATE)
