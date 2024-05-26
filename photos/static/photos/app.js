@@ -194,11 +194,10 @@ async function init(divId, accessToken) {
     initPlaces(photos, map);
 }
 
-// If url params with image id and optional zoom level are present, center map on that, otherwise try last location
-// from local storage and fall back to default values (coords of first image).
+// If url params with image id and optional zoom level are present, center map on that, otherwise try
+// navigator.geolocation, then last location from local storage and fall back to default values (coords of first image).
 function setMapView(map, photos) {
-    let {latitude, longitude, zoomLevel} = getCurrentPosition(photos)
-
+    let {latitude, longitude, zoomLevel} = getCurrentPosition(photos);
     const urlParams = new URLSearchParams(window.location.search);
     const zoomParam = Number(urlParams.get('zoomLevel'));
     const photosFromUrlParam = photos.filter(p => p.id === urlParams.get('id'));
@@ -214,12 +213,20 @@ function setMapView(map, photos) {
 
         map.setView([photo.latitude, photo.longitude], zoomLevel);
         photo.circle.openPopup();
+        updateCircleRadii(photos, zoomLevel);
         updateCurrentPosition(map);
-    } else {
-        map.setView([latitude, longitude], zoomLevel);
+        return;
     }
 
-    updateCircleRadii(photos, zoomLevel);
+    const gl = navigator.geolocation;
+    gl.getCurrentPosition(({coords}) => {
+        map.setView([coords.latitude, coords.longitude], zoomLevel);
+        updateCurrentPosition(map);
+        updateCircleRadii(photos, zoomLevel);
+    }, () => {
+        map.setView([latitude, longitude], zoomLevel);
+        updateCircleRadii(photos, zoomLevel);
+    });
 }
 
 function initPlaces(photos, map) {
