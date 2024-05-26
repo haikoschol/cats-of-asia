@@ -34,6 +34,9 @@
                 <a href="{% url 'index' %}">Map</a>
             </li>
             <li>
+                <a href="{% url 'nearme' %}">Near Me</a>
+            </li>
+            <li>
                 <a href="{% url 'favorites' %}">Favorites</a>
             </li>
         {% if user.is_authenticated %}

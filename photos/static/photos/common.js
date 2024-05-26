@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2023 Haiko Schol
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+'use strict';
+
 class FavoriteStore {
     static storageKey = 'favorites';
 
@@ -44,4 +46,3 @@ class FavoriteStore {
         localStorage.setItem(FavoriteStore.storageKey, JSON.stringify(this.toArray()));
     }
 }
-

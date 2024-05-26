@@ -7,8 +7,12 @@ import uuid
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.contrib.gis.geos import Point
+from django.contrib.gis.db.models.functions import Distance
+from django.contrib.gis.measure import D
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
+from jsonrpc.backend.django import api
 from pydantic import BaseModel
 
 from photos.models import Photo, Coordinates, Location, RawMetadata
@@ -28,6 +32,25 @@ def index(request):
         'default_radius': DEFAULT_RADIUS,
         'access_token': settings.MAPBOX_ACCESS_TOKEN,
     })
+
+
+@require_http_methods(['GET'])
+def near_me(request):
+    return render(request, 'photos/nearme.html')
+
+
+@api.dispatcher.add_method
+def get_closest_photos(request, latitude: float, longitude: float, limit: int = 10, max_distance_km: int = 10):
+    print(latitude, longitude)
+    user_location = Point(longitude, latitude, srid=4326)  # Note the order: longitude, latitude
+
+    closest_photos = Photo.objects.filter(
+        coordinates__point__distance_lte=(user_location, D(km=max_distance_km))
+    ).annotate(
+        distance=Distance('coordinates__point', user_location)
+    ).order_by('distance')[:limit]
+
+    return get_photos(closest_photos)
 
 
 @require_http_methods(['GET'])

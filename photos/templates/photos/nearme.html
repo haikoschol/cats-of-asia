@@ -1,0 +1,24 @@
+{#SPDX-FileCopyrightText: 2023 Haiko Schol#}
+{#SPDX-License-Identifier: GPL-3.0-or-later#}
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block javascript %}
+    <script type="module" src="{% static 'photos/nearme.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+    {% csrf_token %}
+    <input type="hidden" id="jsonRpcUrl" value="{% url 'endpoint' %}" />
+
+    <div id="noLoc" hidden="" style="display: flex; justify-content: center;">
+        <div>We can't show you nearby photos if you don't share your location. 🤷</div>
+    </div>
+
+    <div id="noNearme" hidden="" style="display: flex; justify-content: center;">
+        <div>Sorry, there are no photos that were taken within 10km of your location. 🥺</div>
+    </div>
+
+    <div id="nearmeContainer" aria-busy="true"></div>
+{% endblock %}

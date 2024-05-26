@@ -7,6 +7,7 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name='index'),
+    path('nearme', views.near_me, name='nearme'),
     path('favorites', views.favorites, name='favorites'),
     path('upload', views.upload, name='upload'),
     path('create_upload_url', views.create_upload_url, name='create_upload_url'),
