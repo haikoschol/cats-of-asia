@@ -41,7 +41,6 @@ def near_me(request):
 
 @api.dispatcher.add_method
 def get_closest_photos(request, latitude: float, longitude: float, limit: int = 10, max_distance_km: int = 10):
-    print(latitude, longitude)
     user_location = Point(longitude, latitude, srid=4326)  # Note the order: longitude, latitude
 
     closest_photos = Photo.objects.filter(
@@ -78,7 +77,8 @@ URL_TMPL = 'https://maps.googleapis.com/maps/api/geocode/json?language=en&latlng
 
 @add_authed_method
 def get_location(request, latitude: float, longitude: float) -> dict[str, object]:
-    coords = Coordinates.objects.filter(latitude=latitude, longitude=longitude).first()
+    p = Point(longitude, latitude, srid=4326)
+    coords = Coordinates.objects.filter(point=p).first()
 
     if coords:
         payload = {'city': coords.location.city, 'country': coords.location.country}
@@ -132,7 +132,8 @@ class PhotoMetadata(BaseModel):
 @add_authed_method
 def add_photo(request, metadata: dict[str, object]):
     pm = PhotoMetadata(**metadata)
-    coords = Coordinates.objects.filter(latitude=pm.latitude, longitude=pm.longitude).first()
+    p = Point(pm.longitude, pm.latitude, srid=4326)
+    coords = Coordinates.objects.filter(point=p).first()
 
     if not coords:
         loc, _ = Location.objects.get_or_create(
@@ -142,8 +143,7 @@ def add_photo(request, metadata: dict[str, object]):
         )
 
         coords = Coordinates.objects.create(
-            latitude=pm.latitude,
-            longitude=pm.longitude,
+            point=p,
             altitude=pm.altitude,
             location=loc,
         )
