@@ -163,8 +163,12 @@ class CoaUploader extends HTMLElement {
         this.metadata.city = this.city.value
         this.metadata.country = this.country.value
 
-        await this.addPhoto(this.metadata)
-        Toast(`Uploaded file ${this.metadata.filename} successfully`)
+        const uploadRes = await this.addPhoto(this.metadata)
+        if (uploadRes.success) {
+            Toast(`Uploaded file ${this.metadata.filename} successfully`)
+        } else {
+            ErrorToast(`Uploading file ${this.metadata.filename} failed`)
+        }
     }
 
     populateForm() {
