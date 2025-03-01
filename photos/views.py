@@ -136,11 +136,17 @@ def add_photo(request, metadata: dict[str, object]):
     coords = Coordinates.objects.filter(point=p).first()
 
     if not coords:
-        loc, _ = Location.objects.get_or_create(
+        loc = Location.objects.filter(
             city=pm.city,
             country=pm.country,
-            tzoffset=pm.tzoffset,
-        )
+        ).first()
+
+        if not loc:
+            loc = Location.objects.create(
+                city=pm.city,
+                country=pm.country,
+                tzoffset=pm.tzoffset, # this is probably wrong
+            )
 
         coords = Coordinates.objects.create(
             point=p,
