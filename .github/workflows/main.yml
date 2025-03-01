@@ -41,7 +41,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: 'auto'
         run: |
-          aws s3 sync --endpoint-url ${{ vars.R2_ENDPOINT_URL }} collectedstatic/ s3://coa-static/ --delete
+          aws s3 sync --endpoint-url ${{ vars.R2_ENDPOINT_URL }} --checksum-algorithm=CRC32 collectedstatic/ s3://coa-static/ --delete
 
       - name: Apply database migrations
         env:
