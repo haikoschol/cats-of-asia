@@ -10,7 +10,7 @@ repository = "https://github.com/haikoschol/cats-of-asia"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-django = "^5.0"
+django = "^5.1"
 django-environ = "^0.11.2"
 psycopg = {extras = ["binary"], version = "^3.1.14"}
 json-rpc = "^1.15.0"
